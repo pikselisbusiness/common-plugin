@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/go-plugin"
 )
 
-func ClientMain(pluginImplementation Common) {
+func ClientMain(pluginImplementation any) {
 
 	if impl, ok := pluginImplementation.(interface {
 		SetAPI(api API)

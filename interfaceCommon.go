@@ -88,6 +88,10 @@ type Common interface {
 	// Minimum server version: 1.0
 	OnDeactivate() error
 
+	// RunCronJob is invoked when the plugin cronjob schedule activates
+	RunCronJob() error
+
+	// GetRoutes returns all routes that plugin has for REST API
 	GetRoutes() []RouteUrl
 	// Execute route - plugin will handle this
 	HandleRoute(routeType, url string, rc RouteContext) RouteResponse

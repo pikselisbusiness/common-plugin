@@ -1,8 +1,6 @@
 package shared
 
 import (
-	"pikselis-business/utils/logger"
-
 	"github.com/hashicorp/go-plugin"
 )
 
@@ -20,7 +18,7 @@ func GetPluginMap(api API, db DB) map[string]plugin.Plugin {
 		"common": &CommonPlugin{
 			apiImpl: api,
 			dbImpl:  db,
-			logger:  logger.LoggerExternal,
+			logger:  LoggerExternal,
 		},
 	}
 	return PluginMap
@@ -31,9 +29,9 @@ func GetPluginMap(api API, db DB) map[string]plugin.Plugin {
 // gRPC.
 type CommonPlugin struct {
 	// that are written in Go.
-	Impl    Common
+	Impl    any
 	apiImpl API
 	dbImpl  DB
 	Driver  Driver
-	logger  logger.Logger
+	logger  Logger
 }

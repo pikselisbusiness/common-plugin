@@ -2,10 +2,13 @@ package shared
 
 // directly.
 type API interface {
+	RegisterCronJob(schedule string)
 	GetConfigVariable(name string) (string, error)
-	GetUserInfoForUserId(userId uint) (UserInfo)
-	GetInvoices(request InvoicesRequest) (InvoicesListResponse, error) 
+	GetUserInfoForUserId(userId uint) UserInfo
+	GetInvoices(request InvoicesRequest) (InvoicesListResponse, error)
 	GetDivisions(context RequestContext, request DivisionsRequest) ([]Division, error)
+	GetCompanyById(context RequestContext, companyId uint) (Company, error)
+	GetCompaniesMap(context RequestContext, companyIds []uint) (map[uint]Company, error)
 }
 
 // Client is a streamlined wrapper over the pikselis-business plugin API.

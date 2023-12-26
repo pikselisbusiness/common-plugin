@@ -6,15 +6,17 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io"
-	"net/http"
 	"net/rpc"
-	"pikselis-business/utils/logger"
 	"reflect"
 	"sync"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/hashicorp/go-plugin"
 )
+
+func init() {
+	gob.Register(ErrorString{})
+}
 
 func (p *CommonPlugin) Server(broker *plugin.MuxBroker) (interface{}, error) {
 	return &CommonServerRPC{
@@ -39,34 +41,14 @@ type CommonClientRPC struct {
 	dbImpl  DB
 	broker  *plugin.MuxBroker
 	doneWg  sync.WaitGroup
-	logger  logger.Logger
+	logger  Logger
 }
 
 type CommonServerRPC struct {
-	Impl         Common
+	Impl         any
 	broker       *plugin.MuxBroker
 	apiRPCClient *apiRPCClient
 	dbRPCClient  *dbRPCClient
-}
-
-type apiRPCClient struct {
-	client *rpc.Client
-	broker *plugin.MuxBroker
-}
-
-type apiRPCServer struct {
-	impl   API
-	broker *plugin.MuxBroker
-}
-
-type dbRPCClient struct {
-	client *rpc.Client
-	broker *plugin.MuxBroker
-}
-
-type dbRPCServer struct {
-	impl   DB
-	broker *plugin.MuxBroker
 }
 
 type HandleRouteRequest struct {
@@ -90,12 +72,12 @@ type OnActivateRequest struct {
 type OnActivateResponse struct {
 	A error
 }
-type ServeHTTPRequest struct {
-	ResponseWriterStream uint32
-	Request              *http.Request
-	Context              *RequestContext
-	RequestBodyStream    uint32
+type RunCronJobRequest struct {
 }
+type RunCronJobResponse struct {
+	Error error
+}
+
 type EmptyRequest struct{}
 type EmptyResponse struct{}
 
@@ -148,9 +130,6 @@ func decodableError(err error) error {
 	}
 	return err
 }
-func init() {
-	gob.Register(ErrorString{})
-}
 
 type ErrorString struct {
 	Code int // Code to map to various error variables
@@ -163,12 +142,17 @@ func (e ErrorString) Error() string {
 
 func (m *CommonServerRPC) GetRoutes(req EmptyRequest, resp *GetRoutesResponse) error {
 
-	routes := m.Impl.GetRoutes()
+	// Check if implemented
+	if hook, ok := m.Impl.(interface {
+		GetRoutes() []RouteUrl
+	}); ok {
 
-	fmt.Println("GET routes on server", routes)
+		routes := hook.GetRoutes()
 
-	resp.RouteUrls = routes
+		fmt.Println("GET routes on server", routes)
 
+		resp.RouteUrls = routes
+	}
 	return nil
 
 }
@@ -186,10 +170,16 @@ func (m *CommonClientRPC) GetRoutes() []RouteUrl {
 }
 
 func (m *CommonServerRPC) HandleRoute(req HandleRouteRequest, resp *HandleRouteResponse) error {
-	response := m.Impl.HandleRoute(req.RouteType, req.Url, req.RouteContext)
+	// Check if implemented
+	if hook, ok := m.Impl.(interface {
+		HandleRoute(routeType, url string, rc RouteContext) RouteResponse
+	}); ok {
 
-	resp.Code = response.Code
-	resp.I = response.I
+		response := hook.HandleRoute(req.RouteType, req.Url, req.RouteContext)
+
+		resp.Code = response.Code
+		resp.I = response.I
+	}
 	return nil
 }
 func (m *CommonClientRPC) HandleRoute(routeType, url string, rc RouteContext) RouteResponse {
@@ -349,230 +339,24 @@ func (m *CommonClientRPC) OnDeactivate() error {
 	return reply
 }
 
-func (m *CommonServerRPC) ServeHTTP(req ServeHTTPRequest, rep *struct{}) error {
-
-	return nil
-}
-
-func (m *CommonClientRPC) ServeHTTP(rc *RequestContext, w http.ResponseWriter, r *http.Request) {
-
-}
-
-//GetConfigVariable
-
-type GetConfigVariableRequest struct {
-	VariableName string
-}
-type GetConfigVariableResponse struct {
-	VariableData string
-	Error        error
-}
-
-//GetUserInfoForUserId
-
-type GetUserInfoForUserIdRequest struct {
-	UserId uint
-}
-type GetUserInfoForUserIdResponse struct {
-	UserInfo UserInfo
-}
-
-// GetInvoices
-type GetInvoicesRequest struct {
-	Request InvoicesRequest
-}
-type GetInvoicesResponse struct {
-	Response InvoicesListResponse
-	Error    error
-}
-
-// GetDivisions
-type GetDivisionsRequest struct {
-	Context RequestContext
-	Request DivisionsRequest
-}
-type GetDivisionsResponse struct {
-	Divisions []Division
-	Error     error
-}
-
-func (m *apiRPCServer) GetConfigVariable(req GetConfigVariableRequest, resp *GetConfigVariableResponse) error {
-	data, err := m.impl.GetConfigVariable(req.VariableName)
-
-	resp.VariableData = data
-	resp.Error = err
-
-	return nil
-}
-func (m *apiRPCClient) GetConfigVariable(variableName string) (string, error) {
-
-	var reply GetConfigVariableResponse
-	err := m.client.Call("Plugin.GetConfigVariable", GetConfigVariableRequest{
-		VariableName: variableName,
-	}, &reply)
-	if err != nil {
-		return "", err
+func (m *CommonServerRPC) RunCronJob(args *RunCronJobRequest, resp *RunCronJobResponse) error {
+	// Check if implemented
+	if hook, ok := m.Impl.(interface {
+		RunCronJob() error
+	}); ok {
+		err := hook.RunCronJob()
+		resp.Error = err
 	}
-
-	return reply.VariableData, reply.Error
-}
-
-func (m *apiRPCServer) GetUserInfoForUserId(req GetUserInfoForUserIdRequest, resp *GetUserInfoForUserIdResponse) error {
-	data := m.impl.GetUserInfoForUserId(req.UserId)
-
-	resp.UserInfo = data
-
 	return nil
 }
-func (m *apiRPCClient) GetUserInfoForUserId(userId uint) UserInfo {
 
-	var reply GetUserInfoForUserIdResponse
-	err := m.client.Call("Plugin.GetUserInfoForUserId", GetUserInfoForUserIdRequest{
-		UserId: userId,
-	}, &reply)
+func (m *CommonClientRPC) RunCronJob() error {
+
+	var reply RunCronJobResponse
+
+	err := m.client.Call("Plugin.RunCronJob", EmptyRequest{}, &reply)
 	if err != nil {
-		return UserInfo{}
-	}
-
-	return reply.UserInfo
-}
-
-func (m *apiRPCServer) GetInvoices(req GetInvoicesRequest, resp *GetInvoicesResponse) error {
-	data, err := m.impl.GetInvoices(req.Request)
-
-	resp.Response = data
-	resp.Error = err
-
-	return nil
-}
-func (m *apiRPCClient) GetInvoices(request InvoicesRequest) (InvoicesListResponse, error) {
-
-	var reply GetInvoicesResponse
-	err := m.client.Call("Plugin.GetInvoices", GetInvoicesRequest{
-		Request: request,
-	}, &reply)
-	if err != nil {
-		return InvoicesListResponse{}, err
-	}
-
-	return reply.Response, reply.Error
-}
-
-func (m *apiRPCServer) GetDivisions(req GetDivisionsRequest, resp *GetDivisionsResponse) error {
-	data, err := m.impl.GetDivisions(req.Context, req.Request)
-
-	resp.Divisions = data
-	resp.Error = err
-
-	return nil
-}
-func (m *apiRPCClient) GetDivisions(context RequestContext, request DivisionsRequest) ([]Division, error) {
-
-	var reply GetDivisionsResponse
-	err := m.client.Call("Plugin.GetDivisions", GetDivisionsRequest{
-		Context: context,
-		Request: request,
-	}, &reply)
-	if err != nil {
-		return []Division{}, err
-	}
-
-	return reply.Divisions, reply.Error
-}
-
-// api
-type DbMigrateRequest struct {
-	Model interface{}
-}
-
-type DbMigrateResponse struct {
-	Error error
-}
-type DbStatementRequest struct {
-	Sql    string
-	Values []interface{}
-}
-
-type DbStatementResponse struct {
-	Error error
-}
-
-type DbRawResponse struct {
-	Items []map[string]interface{}
-	Error error
-}
-
-func (m *dbRPCServer) Migrate(req DbMigrateRequest, resp *DbMigrateResponse) error {
-	err := m.impl.Migrate(req.Model)
-
-	if err != nil {
-		fmt.Println("Error calling Plugin.Migrate", "error", err)
-	}
-	resp.Error = err
-
-	return nil
-}
-func (m *dbRPCClient) Migrate(model interface{}) error {
-
-	var reply DbMigrateResponse
-	err := m.client.Call("Plugin.Migrate", DbMigrateRequest{
-		Model: model,
-	}, &reply)
-	if err != nil {
-		fmt.Println("Error calling Plugin.Migrate", "error", err)
 		return err
 	}
-
 	return reply.Error
-}
-
-func (m *dbRPCServer) Exec(req DbStatementRequest, resp *DbStatementResponse) error {
-	err := m.impl.Exec(req.Sql, req.Values...)
-
-	if err != nil {
-		fmt.Println("Error calling Plugin.Exec", "error", err)
-	}
-	resp.Error = encodableError(err)
-
-	return nil
-}
-func (m *dbRPCClient) Exec(sql string, values ...interface{}) error {
-
-	var reply DbStatementResponse
-	err := m.client.Call("Plugin.Exec", DbStatementRequest{
-		Sql:    sql,
-		Values: values,
-	}, &reply)
-	if err != nil {
-		fmt.Println("Error calling Plugin.Exec", "error", err)
-		return err
-	}
-
-	return reply.Error
-}
-
-func (m *dbRPCServer) Raw(req DbStatementRequest, resp *DbRawResponse) error {
-	items, err := m.impl.Raw(req.Sql, req.Values...)
-
-	if err != nil {
-		fmt.Println("Error calling Plugin.Raw", "error", err)
-	}
-	resp.Items = items
-	resp.Error = encodableError(err)
-
-	return nil
-}
-func (m *dbRPCClient) Raw(sql string, values ...interface{}) ([]map[string]interface{}, error) {
-
-	var reply DbRawResponse
-	err := m.client.Call("Plugin.Raw", DbStatementRequest{
-		Sql:    sql,
-		Values: values,
-	}, &reply)
-	if err != nil {
-		fmt.Println("Error calling Plugin.Raw", "error", err)
-		return []map[string]interface{}{}, err
-	}
-
-	return reply.Items, reply.Error
 }
