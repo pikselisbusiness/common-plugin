@@ -9,6 +9,7 @@ type API interface {
 	GetDivisions(context RequestContext, request DivisionsRequest) ([]Division, error)
 	GetCompanyById(context RequestContext, companyId uint) (Company, error)
 	GetCompaniesMap(context RequestContext, companyIds []uint) (map[uint]Company, error)
+	GetProductsMap(context RequestContext, productsIds []uint) (map[uint]ProductMerged, error)
 }
 
 // Client is a streamlined wrapper over the pikselis-business plugin API.

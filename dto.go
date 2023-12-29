@@ -208,3 +208,209 @@ type DivisionWarehouse struct {
 	Name        string `json:"name"`
 	WarehouseId int32  `json:"warehouseId"`
 }
+
+type ProductMerged struct {
+	ProductId     uint    `json:"productId"`
+	Name          string  `json:"name"`
+	Price         float64 `json:"price"` //@TODO - on eshop - change this with priceWithVat
+	PriceWithVat  float64 `json:"priceWithVat"`
+	Currency      string  `json:"currency"`
+	Price1        float64 `json:"price1"`
+	Price1WithVat float64 `json:"price1WithVat"` // @TODO skip fields on create
+	Currency1     string  `json:"currency1"`
+	Price2        float64 `json:"price2"`
+	Price2WithVat float64 `json:"price2WithVat"` // @TODO skip fields on create
+	Currency2     string  `json:"currency2"`
+	Price3        float64 `json:"price3"`
+	Price3WithVat float64 `json:"price3WithVat"`
+	Currency3     string  `json:"currency3"`
+
+	Price4        float64 `json:"price4"`
+	Price4WithVat float64 `json:"price4WithVat"`
+	Currency4     string  `json:"currency4"`
+
+	Price5        float64 `json:"price5"`
+	Price5WithVat float64 `json:"price5WithVat"`
+	Currency5     string  `json:"currency5"`
+
+	Price6        float64 `json:"price6"`
+	Price6WithVat float64 `json:"price6WithVat"`
+	Currency6     string  `json:"currency6"`
+
+	Price7        float64 `json:"price7"`
+	Price7WithVat float64 `json:"price7WithVat"`
+	Currency7     string  `json:"currency7"`
+
+	Price8        float64 `json:"price8"`
+	Price8WithVat float64 `json:"price8WithVat"`
+	Currency8     string  `json:"currency8"`
+
+	Price9        float64 `json:"price9"`
+	Price9WithVat float64 `json:"price9WithVat"`
+	Currency9     string  `json:"currency9"`
+
+	Price10        float64 `json:"price10"`
+	Price10WithVat float64 `json:"price10WithVat"`
+	Currency10     string  `json:"currency10"`
+
+	MeasurementUnit  string  `json:"measurementUnit"`
+	Articule         string  `json:"articule"`
+	NameEn           string  `json:"nameEn"`
+	Description      string  `json:"description"`
+	Countable        bool    `json:"countable"`
+	OrderedQuantity  float64 `json:"orderedQuantity"`
+	Image1           string  `json:"image1"`
+	Image2           string  `json:"image2"`
+	Image3           string  `json:"image3"`
+	Image4           string  `json:"image4"`
+	Image5           string  `json:"image5"`
+	Image6           string  `json:"image6"`
+	Image7           string  `json:"image7"`
+	Image8           string  `json:"image8"`
+	Image9           string  `json:"image9"`
+	Image10          string  `json:"image10"`
+	Image11          string  `json:"image11"`
+	Image12          string  `json:"image12"`
+	Image13          string  `json:"image13"`
+	SupplierCode1    string  `json:"supplierCode1"`
+	SupplierCode2    string  `json:"supplierCode2"`
+	SupplierCode3    string  `json:"supplierCode3"`
+	Brand            string  `json:"brand"`
+	BrandEn          string  `json:"brandEn"`
+	BrandRu          string  `json:"brandRu"`
+	BrandPl          string  `json:"brandPl"`
+	IsDiscounted     bool    `json:"isDiscounted"`
+	IsInPriceList    bool    `json:"isInPriceList"`
+	IsOld            bool    `json:"isOld"`
+	Importer         string  `json:"imported"`
+	IsNew            bool    `json:"isNew"`
+	WarrantyInMonths int32   `json:"warrantyInMonths"`
+	IsRecommended    bool    `json:"isRecommended"`
+	IsRemoved        bool    `json:"isRemoved"`
+	Comment          string  `json:"comment"`
+	Link             string  `json:"link"`
+	LinkEn           string  `json:"linkEn"`
+	LinkRu           string  `json:"linkRu"`
+	LinkPl           string  `json:"linkPl"`
+	NameRu           string  `json:"nameRu"`
+	DescriptionEn    string  `json:"descriptionEn"`
+	DescriptionRu    string  `json:"descriptionRu"`
+
+	NamePl        string `json:"namePl"`
+	DescriptionPl string `json:"nescriptionPl"`
+
+	PriceFor float64 `json:"priceFor"`
+	Package1 int32   `json:"package1"`
+	Package2 int32   `json:"package2"`
+	Package3 int32   `json:"package3"`
+
+	DiscountValue        float64 `json:"discountValue"`
+	DiscountType         int32   `json:"discountType"`
+	DiscountPercent      float64 `json:"discountPercent"`      // not in sql
+	DiscountedPrice      float64 `json:"discountedPrice"`      // not in sql
+	DiscountedPriceWoVat float64 `json:"discountedPriceWoVat"` // not in sql
+	Orderby              uint    `json:"orderby"`
+	MainCategoryId       int32   `json:"mainCategoryId"`
+
+	Quantity     int64    `json:"quantity"`
+	ImageMedium  string   `json:"image"`
+	ImageOrigin  string   `json:"imageOrigin"`
+	ImageSmall   string   `json:"imageSmall"`
+	Images       []string `json:"images"`
+	ImagesOrigin []string `json:"imagesOrigin"`
+	ImagesSmall  []string `json:"imagesSmall"`
+
+	ProductWeight   float64 `json:"productWeight"`
+	ProductSize     string  `json:"productSize"`
+	PrimaryPrice    float64 `json:"primaryPrice"`
+	CodeForGrouping string  `json:"codeForGrouping"`
+	ProductSeason   string  `json:"productSeason"`
+	Volume          float64 `json:"volume"`
+	Barcode         string  `json:"barcode"`
+	VatPercentage   float64 `json:"vatPercentage"`
+	// Content   string  `json:"productSeason"`
+	OriginCountry string `json:"originCountry"`
+
+	SelectedCategoryIds []int32           `json:"selectedCategoryIds"`
+	MetaValues          map[string]string `json:"metaValues"`
+
+	AccountingNumbers ProductAccountingNumbers `json:"accountingNumbers"`
+
+	SyncPrestashop           bool    `json:"syncPrestashop"`
+	SyncWoocommerce          bool    `json:"syncWoocommerce"`
+	ProductLocation          string  `json:"productLocation"`
+	MainForEshop             bool    `json:"mainForEshop"`
+	OnlyInPhysicalStore      bool    `json:"onlyInPhysicalStore"`
+	NameInEshop              string  `json:"nameInEshop"`
+	ProductLength            float32 `json:"productLength"`
+	ProductWidth             float32 `json:"productWidth"`
+	ProductHeight            float32 `json:"productHeight"`
+	OrgEanCode               string  `json:"orgEanCode"`
+	ShowInPiguXML            bool    `json:"showInPiguXml"`
+	NameInPigu               string  `json:"nameInPigu"`
+	ShowInSale               bool    `json:"showInSale"`
+	IsPhysicalOnlyProduct    bool    `json:"isPhysicalOnlyProduct"`
+	AvailableForOrderInEshop bool    `json:"availableForOrderInEshop"`
+
+	CategoryNames     []string              `json:"categoryNames"`
+	CategoryNamesList [][]string            `json:"categoryNamesList"`
+	Packages          []ProductPackage      `json:"packages"`
+	AttributeMerge    ProductAttributeMerge `json:"attributeMerge"`
+
+	// InsertDatetime   time.Time `json:"insertDatetime"`
+	// ModifyDatetime   time.Time `json:"modifyDatetime"`
+	InsertUserId   uint                `json:"-"` // inner only
+	UpdateUserId   uint                `json:"-"` // inner only
+	InsertDatetime time.Time           `json:"insertDatetime"`
+	UpdateDatetime time.Time           `json:"updateDatetime"`
+	InsertUserInfo UserInfo            `json:"insertUserInfo"`
+	UpdateUserInfo UserInfo            `json:"updateUserInfo"`
+	External       ProductExternalInfo `json:"external"`
+
+	PhotosUpdated bool
+	CustomFields  json.RawMessage `json:"customFields"`
+}
+type ProductPackage struct {
+	PackageId               uint    `json:"packageId"`
+	Quantity                string  `json:"quantity"`
+	MeasurementUnit         string  `json:"measurementUnit"`
+	Price1                  float64 `json:"price1"`
+	Price1WithVat           float64 `json:"price1WithVat"`
+	DiscountedPrice1        float64 `json:"discountedPrice1"`
+	DiscountedPrice1WithVat float64 `json:"discountedPrice1WithVat"`
+	Currency1               string  `json:"currency1"`
+	Price2                  float64 `json:"price2"`
+	Price2WithVat           float64 `json:"price2WithVat"`
+	Currency2               string  `json:"currency2"`
+	Discount                float64 `json:"discount"`
+}
+
+type ProductExternalInfo struct {
+	PrestaId            uint `json:"prestaId"`
+	PrestaCombinationId uint `json:"prestaCombinationId"`
+}
+type ProductAccountingNumbers struct {
+	ReturnAccountNo              float64 `json:"returnAccountNo"`
+	CostDebitAccountNo           string  `json:"costDebitAccountNo"`
+	CostCreditAccountNo          string  `json:"costCreditAccountNo"`
+	SaleAccountNo                string  `json:"saleAccountNo"`
+	SaleCostAccountNo            string  `json:"saleCostAccountNo"`
+	SupplierDebtAccountNo        string  `json:"supplierDebtAccountNo"`
+	BuyerDebtAccountNo           string  `json:"buyerDebtAccountNo"`
+	VatDebitAccountNo            string  `json:"vatDebitAccountNo"`
+	VatCreditAccountNo           string  `json:"vatCreditAccountNo"`
+	WriteOffAccountNo            string  `json:"writeOffAccountNo"`
+	ManufacturingDebitAccountNo  string  `json:"manufacturingDebitAccountNo"`
+	ManufacturingCreditAccountNo string  `json:"manufacturingCreditAccountNo"`
+}
+type ProductAttributeMerge struct {
+	Attributes    []ProductAttribute `json:"attributes"`
+	IsMainProduct bool               `json:"isMainProduct"`
+}
+type ProductAttribute struct {
+	AttributeId        uint   `json:"attributeId" `
+	AttributeName      string `json:"attributeName"`
+	AttributeColorCode string `json:"attributeColorCode"`
+	GroupId            uint   `json:"groupId"`
+	PrestaId           uint   `json:"prestaId"`
+}

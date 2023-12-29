@@ -82,6 +82,16 @@ type GetCompaniesMapResponse struct {
 	Error     error
 }
 
+// GetProductsMap
+type GetProductsMapRequest struct {
+	Context    RequestContext
+	ProductIds []uint
+}
+type GetProductsMapResponse struct {
+	Products map[uint]ProductMerged
+	Error    error
+}
+
 func (m *apiRPCServer) RegisterCronJob(req RegisterCronJobRequest, resp *RegisterCronJobResponse) error {
 	m.impl.RegisterCronJob(req.Schedule)
 
@@ -226,4 +236,26 @@ func (m *apiRPCClient) GetCompaniesMap(context RequestContext, companyIds []uint
 	}
 
 	return reply.Companies, reply.Error
+}
+
+func (m *apiRPCServer) GetProductsMap(req GetProductsMapRequest, resp *GetProductsMapResponse) error {
+	products, err := m.impl.GetProductsMap(req.Context, req.ProductIds)
+
+	resp.Products = products
+	resp.Error = err
+
+	return nil
+}
+func (m *apiRPCClient) GetProductsMap(context RequestContext, productIds []uint) (map[uint]ProductMerged, error) {
+
+	var reply GetProductsMapResponse
+	err := m.client.Call("Plugin.GetProductsMap", GetProductsMapRequest{
+		Context:    context,
+		ProductIds: productIds,
+	}, &reply)
+	if err != nil {
+		return map[uint]ProductMerged{}, err
+	}
+
+	return reply.Products, reply.Error
 }
