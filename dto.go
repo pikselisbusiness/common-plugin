@@ -414,3 +414,20 @@ type ProductAttribute struct {
 	GroupId            uint   `json:"groupId"`
 	PrestaId           uint   `json:"prestaId"`
 }
+
+type ProductCategoriesShort struct {
+	CategoryId      int32  `json:"categoryId"`
+	Name            string `json:"name"`
+	ParentName      string `json:"parentName"`
+	ParentId        int32  `json:"parentId"`
+	Level           int32  `json:"level"`
+	Link            string `json:"link"`
+	LinkAbsolute    string `json:"linkAbsolute"`
+	MetaTitle       string `json:"metaTitle"`
+	MetaDescription string `json:"metaDescription"`
+	H1Title         string `json:"h1Title"`
+	Image           string `json:"image"`
+	ImageSmall      string `json:"imageSmall"`
+	OrderBy         int32  `json:"orderBy"`
+	ProductsCount   int32  `json:"productsCount"`
+}
