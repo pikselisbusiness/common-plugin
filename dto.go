@@ -352,10 +352,10 @@ type ProductMerged struct {
 	IsPhysicalOnlyProduct    bool    `json:"isPhysicalOnlyProduct"`
 	AvailableForOrderInEshop bool    `json:"availableForOrderInEshop"`
 
-	CategoryNames     []string              `json:"categoryNames"`
-	CategoryNamesList [][]string            `json:"categoryNamesList"`
-	Packages          []ProductPackage      `json:"packages"`
-	AttributeMerge    ProductAttributeMerge `json:"attributeMerge"`
+	CategoryNames      []string                  `json:"categoryNames"`
+	CategoryNamesList  [][]string                `json:"categoryNamesList"`
+	Packages           []ProductPackage          `json:"packages"`
+	AttributeVariation ProductAttributeVariation `json:"attributeVariation"`
 
 	// InsertDatetime   time.Time `json:"insertDatetime"`
 	// ModifyDatetime   time.Time `json:"modifyDatetime"`
@@ -403,7 +403,7 @@ type ProductAccountingNumbers struct {
 	ManufacturingDebitAccountNo  string  `json:"manufacturingDebitAccountNo"`
 	ManufacturingCreditAccountNo string  `json:"manufacturingCreditAccountNo"`
 }
-type ProductAttributeMerge struct {
+type ProductAttributeVariation struct {
 	Attributes    []ProductAttribute `json:"attributes"`
 	IsMainProduct bool               `json:"isMainProduct"`
 }
