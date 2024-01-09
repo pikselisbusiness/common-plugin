@@ -9,7 +9,8 @@ type API interface {
 	GetDivisions(context RequestContext, request DivisionsRequest) ([]Division, error)
 	GetCompanyById(context RequestContext, companyId uint) (Company, error)
 	GetCompaniesMap(context RequestContext, companyIds []uint) (map[uint]Company, error)
-	GetProductsMap(context RequestContext, productsIds []uint) (map[uint]ProductMerged, error)
+	GetProductsMap(context RequestContext, productsIds []uint) (map[uint]Product, error)
+	GetProductById(context RequestContext, productsId uint) (Product, error)
 	// GetProductCategoriesChainByLastChildId(context RequestContext, categoryId uint) ([]ProductCategoriesShort, error)
 }
 

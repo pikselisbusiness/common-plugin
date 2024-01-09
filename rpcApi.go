@@ -88,8 +88,18 @@ type GetProductsMapRequest struct {
 	ProductIds []uint
 }
 type GetProductsMapResponse struct {
-	Products map[uint]ProductMerged
+	Products map[uint]Product
 	Error    error
+}
+
+// GetProductsMap
+type GetProductByIdRequest struct {
+	Context   RequestContext
+	ProductId uint
+}
+type GetProductByIdResponse struct {
+	Product Product
+	Error   error
 }
 
 func (m *apiRPCServer) RegisterCronJob(req RegisterCronJobRequest, resp *RegisterCronJobResponse) error {
@@ -246,7 +256,7 @@ func (m *apiRPCServer) GetProductsMap(req GetProductsMapRequest, resp *GetProduc
 
 	return nil
 }
-func (m *apiRPCClient) GetProductsMap(context RequestContext, productIds []uint) (map[uint]ProductMerged, error) {
+func (m *apiRPCClient) GetProductsMap(context RequestContext, productIds []uint) (map[uint]Product, error) {
 
 	var reply GetProductsMapResponse
 	err := m.client.Call("Plugin.GetProductsMap", GetProductsMapRequest{
@@ -254,8 +264,29 @@ func (m *apiRPCClient) GetProductsMap(context RequestContext, productIds []uint)
 		ProductIds: productIds,
 	}, &reply)
 	if err != nil {
-		return map[uint]ProductMerged{}, err
+		return map[uint]Product{}, err
 	}
 
 	return reply.Products, reply.Error
+}
+
+func (m *apiRPCServer) GetProductById(req GetProductByIdRequest, resp *GetProductByIdResponse) error {
+	product, err := m.impl.GetProductById(req.Context, req.ProductId)
+	resp.Product = product
+	resp.Error = err
+
+	return nil
+}
+func (m *apiRPCClient) GetProductById(context RequestContext, productId uint) (Product, error) {
+
+	var reply GetProductByIdResponse
+	err := m.client.Call("Plugin.GetProductById", GetProductByIdRequest{
+		Context:   context,
+		ProductId: productId,
+	}, &reply)
+	if err != nil {
+		return Product{}, err
+	}
+
+	return reply.Product, reply.Error
 }

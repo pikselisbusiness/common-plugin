@@ -209,7 +209,7 @@ type DivisionWarehouse struct {
 	WarehouseId int32  `json:"warehouseId"`
 }
 
-type ProductMerged struct {
+type Product struct {
 	ProductId     uint    `json:"productId"`
 	Name          string  `json:"name"`
 	Price         float64 `json:"price"` //@TODO - on eshop - change this with priceWithVat
