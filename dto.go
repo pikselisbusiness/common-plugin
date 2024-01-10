@@ -351,6 +351,7 @@ type Product struct {
 	ShowInSale               bool    `json:"showInSale"`
 	IsPhysicalOnlyProduct    bool    `json:"isPhysicalOnlyProduct"`
 	AvailableForOrderInEshop bool    `json:"availableForOrderInEshop"`
+	IsElectronicLicense      bool    `json:"isElectronicLicense"`
 
 	CategoryNames      []string                  `json:"categoryNames"`
 	CategoryNamesList  [][]string                `json:"categoryNamesList"`
