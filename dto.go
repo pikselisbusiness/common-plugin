@@ -65,9 +65,12 @@ type Company struct {
 
 	DebtsMap       map[string]float64 `json:"debts"`
 	MissedDebtsMap map[string]float64 `json:"missedDebts"`
-	AdvanceSumMap  map[string]float64 `json:"advanceSums"`
+	AdvanceSums    CompanyAdvanceSums `json:"advanceSums"`
 }
-
+type CompanyAdvanceSums struct {
+	SupplierAdvances map[string]float64 `json:"supplierAdvances"`
+	BuyerAdvances    map[string]float64 `json:"buyerAdvances"`
+}
 type InvoicesRequest struct {
 	UnlimitPerPage          bool
 	PerPage                 int
