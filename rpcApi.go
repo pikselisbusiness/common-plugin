@@ -124,7 +124,7 @@ func (m *apiRPCServer) GetConfigVariable(req GetConfigVariableRequest, resp *Get
 	data, err := m.impl.GetConfigVariable(req.VariableName)
 
 	resp.VariableData = data
-	resp.Error = err
+	resp.Error = encodableError(err)
 
 	return nil
 }
@@ -165,7 +165,7 @@ func (m *apiRPCServer) GetInvoices(req GetInvoicesRequest, resp *GetInvoicesResp
 	data, err := m.impl.GetInvoices(req.Request)
 
 	resp.Response = data
-	resp.Error = err
+	resp.Error = encodableError(err)
 
 	return nil
 }
@@ -186,7 +186,7 @@ func (m *apiRPCServer) GetDivisions(req GetDivisionsRequest, resp *GetDivisionsR
 	data, err := m.impl.GetDivisions(req.Context, req.Request)
 
 	resp.Divisions = data
-	resp.Error = err
+	resp.Error = encodableError(err)
 
 	return nil
 }
@@ -208,7 +208,7 @@ func (m *apiRPCServer) GetCompanyById(req GetCompanyByIdRequest, resp *GetCompan
 	company, err := m.impl.GetCompanyById(req.Context, req.CompanyId)
 
 	resp.Company = company
-	resp.Error = err
+	resp.Error = encodableError(err)
 
 	return nil
 }
@@ -252,7 +252,7 @@ func (m *apiRPCServer) GetProductsMap(req GetProductsMapRequest, resp *GetProduc
 	products, err := m.impl.GetProductsMap(req.Context, req.ProductIds)
 
 	resp.Products = products
-	resp.Error = err
+	resp.Error = encodableError(err)
 
 	return nil
 }
@@ -273,7 +273,7 @@ func (m *apiRPCClient) GetProductsMap(context RequestContext, productIds []uint)
 func (m *apiRPCServer) GetProductById(req GetProductByIdRequest, resp *GetProductByIdResponse) error {
 	product, err := m.impl.GetProductById(req.Context, req.ProductId)
 	resp.Product = product
-	resp.Error = err
+	resp.Error = encodableError(err)
 
 	return nil
 }
