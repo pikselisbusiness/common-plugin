@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/rpc"
@@ -16,6 +17,7 @@ import (
 
 func init() {
 	gob.Register(ErrorString{})
+	gob.Register(json.RawMessage{})
 }
 
 func (p *CommonPlugin) Server(broker *plugin.MuxBroker) (interface{}, error) {
