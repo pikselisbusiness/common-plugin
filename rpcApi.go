@@ -94,8 +94,8 @@ type GetProductsMapResponse struct {
 
 // GetProductsMap
 type GetProductByIdRequest struct {
-	Context   RequestContext
-	ProductId uint
+	RequestContext RequestContext
+	ProductId      uint
 }
 type GetProductByIdResponse struct {
 	Product Product
@@ -271,18 +271,18 @@ func (m *apiRPCClient) GetProductsMap(context RequestContext, productIds []uint)
 }
 
 func (m *apiRPCServer) GetProductById(req GetProductByIdRequest, resp *GetProductByIdResponse) error {
-	product, err := m.impl.GetProductById(req.Context, req.ProductId)
+	product, err := m.impl.GetProductById(req.RequestContext, req.ProductId)
 	resp.Product = product
 	resp.Error = encodableError(err)
 
 	return nil
 }
-func (m *apiRPCClient) GetProductById(context RequestContext, productId uint) (Product, error) {
+func (m *apiRPCClient) GetProductById(rc RequestContext, productId uint) (Product, error) {
 
 	var reply GetProductByIdResponse
 	err := m.client.Call("Plugin.GetProductById", GetProductByIdRequest{
-		Context:   context,
-		ProductId: productId,
+		RequestContext: rc,
+		ProductId:      productId,
 	}, &reply)
 	if err != nil {
 		return Product{}, err

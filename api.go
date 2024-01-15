@@ -10,7 +10,7 @@ type API interface {
 	GetCompanyById(context RequestContext, companyId uint) (Company, error)
 	GetCompaniesMap(context RequestContext, companyIds []uint) (map[uint]Company, error)
 	GetProductsMap(context RequestContext, productsIds []uint) (map[uint]Product, error)
-	GetProductById(context RequestContext, productsId uint) (Product, error)
+	GetProductById(context RequestContext, productId uint) (Product, error)
 	// GetProductCategoriesChainByLastChildId(context RequestContext, categoryId uint) ([]ProductCategoriesShort, error)
 }
 
