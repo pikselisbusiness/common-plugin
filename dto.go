@@ -435,3 +435,165 @@ type ProductCategoriesShort struct {
 	OrderBy         int32  `json:"orderBy"`
 	ProductsCount   int32  `json:"productsCount"`
 }
+
+type OrderShippingAddress struct {
+	ShippingFirstName   string `json:"shippingFirstName"`
+	ShippingLastName    string `json:"shippingLastName"`
+	ShippingCompanyName string `json:"shippingCompanyName"`
+	ShippingAddress     string `json:"shippingAddress"`
+	ShippingCity        string `json:"shippingCity"`
+	ShippingCountry     string `json:"shippingCountry"`
+	ShippingPostCode    string `json:"shippingPostCode"`
+	ShippingHomePhone   string `json:"shippingHomePhone"`
+	ShippingMobilePhone string `json:"shippingMobilePhone"`
+}
+type OrderPickupLocation struct {
+	LocationId       int32  `json:"locationId"`
+	LocationName     string `json:"locationName"`
+	LocationCity     string `json:"locationCity"`
+	LocationPostCode string `json:"locationPostCode"`
+}
+
+type OrderHeadingsWithLines struct {
+	Title        string      `json:"title"`
+	TotalWoVat   float64     `json:"totalWoVat"`
+	TotalWithVat float64     `json:"totalWithVat"`
+	TotalVat     float64     `json:"totalVat"`
+	Currency     string      `json:"currency"`
+	Lines        []OrderLine `json:"lines"`
+}
+type OrderLine struct {
+	ID             int32  `json:"id"`
+	LineType       uint   `json:"lineType"`
+	LineTypeString string `json:"lineTypeString"`
+	Title          string `json:"title"`
+	Description    string `json:"description"`
+
+	ProductId       uint    `json:"productId"`
+	ProductName     string  `json:"productName"`
+	ProductInfo     Product `json:"productInfo"`
+	Quantity        float64 `json:"quantity"`
+	OriginalPrice   float64 `json:"originalPrice"`
+	CostPrice       float64 `json:"costPrice"`
+	DealerPrice     float64 `json:"dealerPrice"`
+	BuyerPrice      float64 `json:"price"`
+	PriceWithVat    float64 `json:"priceWithVat"`
+	Sum             float64 `json:"sum"`
+	SumWithVat      float64 `json:"sumWithVat"`
+	DiscountAmount  float64 `json:"discountAmount"`
+	DiscountPercent float64 `json:"discountPercent"`
+	DiscountSum     float64 `json:"discountSum"`
+	Articule        string  `json:"articule"`
+	CostCurrency    string  `json:"costCurrency"`
+	DealerCurrency  string  `json:"dealerCurrency"`
+	BuyerCurrency   string  `json:"currency"`
+	MeasurementUnit string  `json:"measurementUnit"`
+	VatPercentage   float64 `json:"vatPercentage"`
+	VatClass        string  `json:"vatClass"`
+	Package         string  `json:"package"`
+	IsTransport     bool    `json:"isTransport"`
+}
+type OrderStatus struct {
+	StatusId              int32  `json:"statusId"`
+	Selector              int32  `json:"selector"`
+	LabelLt               string `json:"labelLt"`
+	LabelEn               string `json:"labelEn"`
+	LabelRu               string `json:"labelRu"`
+	IsInvoiceDownloadable bool   `json:"isInvoiceDownloadable"`
+	SendEmail             int    `json:"sendEmail"`
+	DoNotPromptEmailText  bool   `json:"doNotPromptEmailText"`
+	IsOrderCompleted      bool   `json:"isOrderCompleted"`
+	DocSeries             string `json:"docSeries"`
+}
+type OrderCompanyInfo struct {
+	CompanyName    string `json:"companyName"`
+	CompanyId      uint   `json:"companyId"`
+	CompanyCode    string `json:"companyCode"`
+	CompanyVatCode string `json:"companyVatCode"`
+	IsPerson       bool   `json:"isPerson"`
+	Address        string `json:"address"`
+	PostCode       string `json:"postCode"`
+	City           string `json:"city"`
+	Country        string `json:"country"`
+	PhoneNumber    string `json:"phoneNumber"`
+}
+type OrderCompanyAddressInfo struct {
+	ContactId    uint   `json:"contactId"`
+	Title        string `json:"title"`
+	FirstName    string `json:"firstName"`
+	LastName     string `json:"lastName"`
+	MobilePhone  string `json:"mobilePhone"`
+	Email        string `json:"email"`
+	SendContract bool   `json:"sendContract"`
+	SendInvoice  bool   `json:"sendInvoice"`
+	SendEmail    bool   `json:"sendEmail"`
+	// Possible types - contact, invoiceaddress, deliveryaddress, followupaddress, otheraddress
+	ContactType string `json:"contactType"`
+	Street      string `json:"street"`
+	State       string `json:"state"`
+	City        string `json:"city"`
+	Country     string `json:"country"`
+	PostCode    string `json:"postCode"`
+}
+type OrderInvoiceInfo struct {
+	InvoiceIsFormed bool      `json:"invoiceIsFormed"`
+	InvoiceId       uint      `json:"invoiceId"`
+	DocSeries       string    `json:"docSeries"`
+	Document        string    `json:"document"`
+	InvoiceDate     time.Time `json:"invoiceDate"`
+	InsertUserInfo  UserInfo  `json:"insertUserInfo"`
+	InsertDatetime  time.Time `json:"insertDatetime"`
+}
+type Order struct {
+	OrderId          int32                `json:"orderId"`
+	Date             time.Time            `json:"date"`
+	InsertDatetime   time.Time            `json:"insertDatetime"`
+	Type             string               `json:"type"`
+	CompanyId        int32                `json:"companyId"`
+	CompanyName      string               `json:"companyName"`
+	OrderStatus      string               `json:"orderStatus"`
+	OrderStatusColor string               `json:"orderStatusColor"`
+	Title            string               `json:"title"`
+	Period           int32                `json:"period"`
+	InsertUserid     int32                `json:"insertUserId"`
+	Document         string               `json:"document"`
+	TotalVat         float64              `json:"totalVat"`
+	TotalWoVat       float64              `json:"totalWoVat"`
+	TotalWithVat     float64              `json:"totalWithVat"`
+	TotalCurrency    string               `json:"totalCurrency"`
+	IsDeleted        bool                 `json:"isDeleted"`
+	StatusLetter     string               `json:"statusLetter"`
+	ReportType       string               `json:"reportType"` // PDF type
+	Comments         string               `json:"comments"`
+	PdfBlankId       int32                `json:"pdfBlankId"`
+	ProductQuantity  float64              `json:"productQuantity"`
+	ShippingAddress  OrderShippingAddress `json:"shippingAddress"`
+	// Additional extended fields
+	OtherDoc               string                   `json:"otherDoc"`
+	Email                  string                   `json:"email"`
+	ExternalUserId         uint                     `json:"externalUserId"`
+	TotalDiscount          float64                  `json:"totalDiscount"`
+	TotalDiscountWithVat   float64                  `json:"totalDiscountWithVat"`
+	DiscountPercent        float64                  `json:"discountPercent"`
+	TotalShipping          float64                  `json:"totalShipping"`
+	TotalShippingWithVat   float64                  `json:"totalShippingWithVat"`
+	CompanyInfo            OrderCompanyInfo         `json:"companyInfo"`
+	OrderStatusInfo        OrderStatus              `json:"orderStatusInfo"` // @TODO rename
+	OrderStatuses          []OrderStatus            `json:"orderStatuses"`   // @TODO rename
+	Products               []OrderLine              `json:"products"`
+	LinesByHeadings        []OrderHeadingsWithLines `json:"linesByHeadings"`
+	ExpiryDate             time.Time                `json:"expiryDate"`
+	CurrencyId             int32                    `json:"currencyId"`
+	PickupLocation         OrderPickupLocation      `json:"pickupLocation"`
+	PaymentType            string                   `json:"paymentType"`
+	ShippingMethodName     string                   `json:"shippingMethodName"`
+	ShippingMethodSelector string                   `json:"shippingMethodSelector"`
+	TrackingNumber         string                   `json:"trackingNumber"`
+	TrackingType           string                   `json:"trackingType"`
+	// Below from contact_id_address
+	CompanyAddressInfo OrderCompanyAddressInfo `json:"companyAddressInfo"`
+	// Additional extended fields
+	InvoiceInfo    OrderInvoiceInfo `json:"invoiceInfo"` // if invoice is formed from order - returns invoice info
+	InsertUserInfo UserInfo         `json:"insertUserInfo"`
+	UpdateUserInfo UserInfo         `json:"updateUserInfo"`
+}
