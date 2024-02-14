@@ -6,6 +6,7 @@ type API interface {
 	GetConfigVariable(name string) (string, error)
 	GetUserInfoForUserId(userId uint) UserInfo
 	GetInvoices(request InvoicesRequest) (InvoicesListResponse, error)
+	GetInvoiceProducts(context RequestContext, invoiceId uint) ([]InvoiceProduct, error)
 	GetDivisions(context RequestContext, request DivisionsRequest) ([]Division, error)
 	GetCompanyById(context RequestContext, companyId uint) (Company, error)
 	GetCompaniesMap(context RequestContext, companyIds []uint) (map[uint]Company, error)

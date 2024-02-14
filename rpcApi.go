@@ -52,6 +52,16 @@ type GetInvoicesResponse struct {
 	Error    error
 }
 
+// GetInvoiceProducts
+type GetInvoiceProductsRequest struct {
+	Context   RequestContext
+	InvoiceId uint
+}
+type GetInvoiceProductsResponse struct {
+	Products []InvoiceProduct
+	Error    error
+}
+
 // GetDivisions
 type GetDivisionsRequest struct {
 	Context RequestContext
@@ -190,6 +200,28 @@ func (m *apiRPCClient) GetInvoices(request InvoicesRequest) (InvoicesListRespons
 	}
 
 	return reply.Response, reply.Error
+}
+
+func (m *apiRPCServer) GetInvoiceProducts(req GetInvoiceProductsRequest, resp *GetInvoiceProductsResponse) error {
+	data, err := m.impl.GetInvoiceProducts(req.Context, req.InvoiceId)
+
+	resp.Products = data
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) GetInvoiceProducts(context RequestContext, invoiceId uint) ([]InvoiceProduct, error) {
+
+	var reply GetInvoiceProductsResponse
+	err := m.client.Call("Plugin.GetInvoiceProducts", GetInvoiceProductsRequest{
+		Context:   context,
+		InvoiceId: invoiceId,
+	}, &reply)
+	if err != nil {
+		return []InvoiceProduct{}, err
+	}
+
+	return reply.Products, reply.Error
 }
 
 func (m *apiRPCServer) GetDivisions(req GetDivisionsRequest, resp *GetDivisionsResponse) error {
