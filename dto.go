@@ -167,6 +167,8 @@ type InvoiceProduct struct {
 	Countable           bool    `json:"countable"` // for out
 	Sum                 float64 `json:"sum"`
 	UseCostPriceAsPrice bool
+	DiscountValue       float64 `json:"discountValue"`
+	DiscountType        string  `json:"discountType"`
 }
 type InvoicePosData struct {
 	CashierId  uint   `json:"cashierId"`
