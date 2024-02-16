@@ -119,6 +119,7 @@ type InvoiceFull struct {
 	PaidSum        float64              `json:"paidSum"`
 	PaidLastDate   time.Time            `json:"paidLastDate"`
 	PayUntilDate   time.Time            `json:"payUntilDate"`
+	ReceiveDate    time.Time            `json:"receiveDate"`
 	TotalCostSum   float64              `json:"totalCostSum"`
 	TotalGainSum   float64              `json:"totalGainSum"`
 	FromWarehouse  string               `json:"fromWarehouse"`
@@ -175,6 +176,12 @@ type InvoicePosData struct {
 	PosType    string `json:"posType"`
 	ReceiptNo  string `json:"receiptNo"`
 	ReceiptNo2 string `json:"receiptNo2"`
+}
+
+type InvoiceReference struct {
+	InvoiceId         uint   `json:"invoiceId"`
+	ReferredInvoiceId uint   `json:"referredInvoiceId"`
+	ReferenceType     string `json:"referenceType"`
 }
 
 /**

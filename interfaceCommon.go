@@ -30,7 +30,6 @@ type RouteContext struct {
 	ParamNames     []string
 	ParamValues    []string
 	RequestContext RequestContext
-	RouteIsAllowed bool
 }
 
 func (c *RouteContext) JSON(statusCode int, i interface{}) (int, []byte) {
