@@ -358,15 +358,15 @@ func (m *CommonServerRPC) OnMigrateRights(args struct{}, resp *OnMigrateRightsRe
 
 }
 
-func (m *CommonClientRPC) OnMigrateRights() OnMigrateRightsResponse {
+func (m *CommonClientRPC) OnMigrateRights() []ModuleRight {
 
 	var reply OnMigrateRightsResponse
 	err := m.client.Call("Plugin.OnMigrateRights", OnMigrateRightsRequest{}, &reply)
 	if err != nil {
-		return OnMigrateRightsResponse{}
+		return []ModuleRight{}
 	}
 
-	return reply
+	return reply.Rights
 }
 func (m *CommonServerRPC) RunCronJob(args *RunCronJobRequest, resp *RunCronJobResponse) error {
 	// Check if implemented
