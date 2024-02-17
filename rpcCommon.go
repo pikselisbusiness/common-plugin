@@ -74,6 +74,11 @@ type OnActivateRequest struct {
 type OnActivateResponse struct {
 	A error
 }
+type OnMigrateRightsRequest struct {
+}
+type OnMigrateRightsResponse struct {
+	Rights []ModuleRight
+}
 type RunCronJobRequest struct {
 }
 type RunCronJobResponse struct {
@@ -340,7 +345,29 @@ func (m *CommonClientRPC) OnDeactivate() error {
 	}
 	return reply
 }
+func (m *CommonServerRPC) OnMigrateRights(args struct{}, resp *OnMigrateRightsResponse) error {
 
+	// Check if implemented
+	if hook, ok := m.Impl.(interface {
+		OnMigrateRights() []ModuleRight
+	}); ok {
+		rights := hook.OnMigrateRights()
+		resp.Rights = rights
+	}
+	return nil
+
+}
+
+func (m *CommonClientRPC) OnMigrateRights() OnMigrateRightsResponse {
+
+	var reply OnMigrateRightsResponse
+	err := m.client.Call("Plugin.OnMigrateRights", OnMigrateRightsRequest{}, &reply)
+	if err != nil {
+		return OnMigrateRightsResponse{}
+	}
+
+	return reply
+}
 func (m *CommonServerRPC) RunCronJob(args *RunCronJobRequest, resp *RunCronJobResponse) error {
 	// Check if implemented
 	if hook, ok := m.Impl.(interface {
