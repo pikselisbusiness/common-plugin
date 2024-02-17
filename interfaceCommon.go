@@ -21,12 +21,12 @@ type ModuleRightDescription struct {
 type ModuleValue string
 
 var (
-	ModuleValueAll               ModuleValue = "all"
-	ModuleValueRead              ModuleValue = "read"
-	ModuleValueUpdateModuleValue ModuleValue = "update"
-	ModuleValueCreate            ModuleValue = "create"
-	ModuleValueDelete            ModuleValue = "delete"
-	ModuleValueAdmin             ModuleValue = "admin"
+	ModuleValueAll    ModuleValue = "all"
+	ModuleValueRead   ModuleValue = "read"
+	ModuleValueUpdate ModuleValue = "update"
+	ModuleValueCreate ModuleValue = "create"
+	ModuleValueDelete ModuleValue = "delete"
+	ModuleValueAdmin  ModuleValue = "admin"
 )
 
 type ModuleRight struct {
