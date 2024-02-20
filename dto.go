@@ -606,3 +606,37 @@ type Order struct {
 	InsertUserInfo UserInfo         `json:"insertUserInfo"`
 	UpdateUserInfo UserInfo         `json:"updateUserInfo"`
 }
+type ItemFilter struct {
+	Operator string `json:"operator" query:"operator"`
+	Value    string `json:"value" query:"value"`
+	Field    string `json:"field" query:"field"`
+}
+
+type OrdersRequest struct {
+	PerPage                      int       `json:"perPage"`
+	Page                         int       `json:"page"`
+	DateFrom                     time.Time `json:"dateFrom"`
+	DateTo                       time.Time `json:"dateTo"`
+	SearchQuery                  string    `json:"searchQuery"`
+	SelectOnlyOffers             bool      `json:"selectOnlyOffers"`
+	SelectOnlyOrders             bool      `json:"selectOnlyOrders"`
+	SelectOnlyProformas          bool      `json:"selectOnlyProformas"`
+	SelectOnlyPeriodic           bool      `json:"selectOnlyPeriodic"`
+	SelectOnlyCompleted          bool
+	SelectOnlyUncompleted        bool   // in progress
+	SelectIncludingDeletedOrders bool   // including deleted
+	SelectOnlyDeletedOrders      bool   // deleted
+	CompanyId                    uint   `json:"companyId"`
+	ExternalUserId               uint   `json:"externalUserId"`
+	StatusIds                    []uint `json:"statusIds"`
+	Filters                      []ItemFilter
+	Token                        string `json:"token"`
+	QueryType                    string `json:"queryType"`
+}
+type OrdersResponse struct {
+	Success          bool               `json:"success"`
+	Orders           []Order            `json:"orders"`
+	OrdersCount      int64              `json:"ordersCount"`
+	Currency         string             `json:"currency"`
+	TotalsByCurrency map[string]float64 `json:"totalsByCurrency"`
+}

@@ -132,6 +132,16 @@ type GetOrderByIdResponse struct {
 	Error error
 }
 
+// GetDivisions
+type GetOrdersRequest struct {
+	Context RequestContext
+	Request OrdersRequest
+}
+type GetOrdersResponse struct {
+	OrdersResponse OrdersResponse
+	Error          error
+}
+
 func (m *apiRPCServer) RegisterCronJob(req RegisterCronJobRequest, resp *RegisterCronJobResponse) error {
 	m.impl.RegisterCronJob(req.Schedule)
 
@@ -384,4 +394,26 @@ func (m *apiRPCClient) GetOrderById(rc RequestContext, orderId uint) (Order, err
 	}
 
 	return reply.Order, reply.Error
+}
+
+func (m *apiRPCServer) GetOrders(req GetOrdersRequest, resp *GetOrdersResponse) error {
+	data, err := m.impl.GetOrders(req.Context, req.Request)
+
+	resp.OrdersResponse = data
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) GetOrders(context RequestContext, request OrdersRequest) (OrdersResponse, error) {
+
+	var reply GetOrdersResponse
+	err := m.client.Call("Plugin.GetOrders", GetOrdersRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return OrdersResponse{}, err
+	}
+
+	return reply.OrdersResponse, reply.Error
 }

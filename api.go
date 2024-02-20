@@ -14,6 +14,7 @@ type API interface {
 	GetProductsMap(context RequestContext, productsIds []uint) (map[uint]Product, error)
 	GetProductById(context RequestContext, productId uint) (Product, error)
 	GetOrderById(context RequestContext, orderId uint) (Order, error)
+	GetOrders(context RequestContext, request OrdersRequest) (OrdersResponse, error)
 	// GetProductCategoriesChainByLastChildId(context RequestContext, categoryId uint) ([]ProductCategoriesShort, error)
 }
 
