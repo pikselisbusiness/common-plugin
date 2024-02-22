@@ -577,6 +577,7 @@ type Order struct {
 	PdfBlankId       int32                `json:"pdfBlankId"`
 	ProductQuantity  float64              `json:"productQuantity"`
 	ShippingAddress  OrderShippingAddress `json:"shippingAddress"`
+
 	// Additional extended fields
 	OtherDoc               string                   `json:"otherDoc"`
 	Email                  string                   `json:"email"`
@@ -595,6 +596,9 @@ type Order struct {
 	CurrencyId             int32                    `json:"currencyId"`
 	PickupLocation         OrderPickupLocation      `json:"pickupLocation"`
 	PaymentType            string                   `json:"paymentType"`
+	PaymentInnerType       string                   `json:"paymentInnerType"`
+	PaymentIsCod           bool                     `json:"paymentIsCod"`
+	PaymentReferenceNo     string                   `json:"paymentReferenceNo"`
 	ShippingMethodName     string                   `json:"shippingMethodName"`
 	ShippingMethodSelector string                   `json:"shippingMethodSelector"`
 	TrackingNumber         string                   `json:"trackingNumber"`
