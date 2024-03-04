@@ -644,3 +644,41 @@ type OrdersResponse struct {
 	Currency         string             `json:"currency"`
 	TotalsByCurrency map[string]float64 `json:"totalsByCurrency"`
 }
+type PriceRange struct {
+	PriceFrom        float64 `json:"priceFrom"`
+	PriceTo          float64 `json:"priceTo"`
+	PriceFromWithVat float64 `json:"priceFromWithVat"`
+	PriceToWithVat   float64 `json:"priceToWithVat"`
+}
+
+type ProductsRequest struct {
+	SelectInEshop      bool
+	SelectInWarehouse  bool
+	Warehouses         []string
+	SelectUncountable  bool
+	SelectArchived     bool
+	CategoryUri        string
+	CategoryIds        []uint
+	PerPage            int
+	Page               int
+	Brands             []string
+	PriceRange         PriceRange
+	OrderWay           string
+	OrderBy            string
+	SearchQuery        string
+	Filters            []ItemFilter
+	ProductIds         []uint
+	SkipQuantityColumn bool
+	UnlimitedProducts  bool
+	UseIndexedSearch   bool
+	SelectMerged       bool // merged products by attributes
+	// When selecting merged products (main products of variants) - products could also be expanded and selected with variants
+	ExpandVariations bool
+}
+type ProductsResponse struct {
+	Success             bool       `json:"success"`
+	Products            []Product  `json:"products"`
+	ProductsCount       int64      `json:"productsCount"`
+	AvailablePriceRange PriceRange `json:"availablePriceRange"`
+	Brands              []string   `json:"brands"`
+}
