@@ -92,6 +92,26 @@ type GetCompanyByIdResponse struct {
 	Error   error
 }
 
+// GetCompanyByCode
+type GetCompanyByCodeRequest struct {
+	Context     RequestContext
+	CompanyCode string
+}
+type GetCompanyByCodeResponse struct {
+	Company Company
+	Error   error
+}
+
+// CreateCompany
+type CreateCompanyRequest struct {
+	Context RequestContext
+	Company Company
+}
+type CreateCompanyResponse struct {
+	CompanyId uint
+	Error     error
+}
+
 // GetCompaniesMap
 type GetCompaniesMapRequest struct {
 	Context    RequestContext
@@ -132,6 +152,27 @@ type GetProductByIdResponse struct {
 	Error   error
 }
 
+// GetProductByAnyField
+type GetProductByAnyFieldRequest struct {
+	RequestContext RequestContext
+	FieldName      string
+	FieldValue     any
+}
+type GetProductByAnyFieldResponse struct {
+	Product Product
+	Error   error
+}
+
+// CreateProduct
+type CreateProductRequest struct {
+	RequestContext RequestContext
+	Request        ProductCreateEditRequest
+}
+type CreateProductResponse struct {
+	ProductId uint
+	Error     error
+}
+
 // GetOrderById
 type GetOrderByIdRequest struct {
 	RequestContext RequestContext
@@ -150,6 +191,27 @@ type GetOrdersRequest struct {
 type GetOrdersResponse struct {
 	OrdersResponse OrdersResponse
 	Error          error
+}
+
+// CreateInvoice
+type CreateInvoiceRequest struct {
+	Context RequestContext
+	Request InvoiceCreateUpdateRequest
+}
+type CreateInvoiceResponse struct {
+	InvoiceId     uint
+	Error         error
+	ErrorResponse InvoiceErrorResponse
+}
+
+// GetInvoiceExistsByDocument
+type GetInvoiceExistsByDocumentRequest struct {
+	Context  RequestContext
+	Document string
+}
+type GetInvoiceExistsByDocumentResponse struct {
+	Exists bool
+	Error  error
 }
 
 func (m *apiRPCServer) RegisterCronJob(req RegisterCronJobRequest, resp *RegisterCronJobResponse) error {
@@ -320,6 +382,50 @@ func (m *apiRPCClient) GetCompanyById(context RequestContext, companyId uint) (C
 	return reply.Company, reply.Error
 }
 
+func (m *apiRPCServer) GetCompanyByCode(req GetCompanyByCodeRequest, resp *GetCompanyByCodeResponse) error {
+	company, err := m.impl.GetCompanyByCode(req.Context, req.CompanyCode)
+
+	resp.Company = company
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) GetCompanyByCode(context RequestContext, companyCode string) (Company, error) {
+
+	var reply GetCompanyByCodeResponse
+	err := m.client.Call("Plugin.GetCompanyByCode", GetCompanyByCodeRequest{
+		Context:     context,
+		CompanyCode: companyCode,
+	}, &reply)
+	if err != nil {
+		return Company{}, err
+	}
+
+	return reply.Company, reply.Error
+}
+
+func (m *apiRPCServer) CreateCompany(req CreateCompanyRequest, resp *CreateCompanyResponse) error {
+	companyId, err := m.impl.CreateCompany(req.Context, req.Company)
+
+	resp.CompanyId = companyId
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) CreateCompany(context RequestContext, company Company) (uint, error) {
+
+	var reply CreateCompanyResponse
+	err := m.client.Call("Plugin.CreateCompany", CreateCompanyRequest{
+		Context: context,
+		Company: company,
+	}, &reply)
+	if err != nil {
+		return 0, err
+	}
+
+	return reply.CompanyId, reply.Error
+}
+
 func (m *apiRPCServer) GetCompaniesMap(req GetCompaniesMapRequest, resp *GetCompaniesMapResponse) error {
 	companies, err := m.impl.GetCompaniesMap(req.Context, req.CompanyIds)
 
@@ -405,6 +511,49 @@ func (m *apiRPCClient) GetProductById(rc RequestContext, productId uint) (Produc
 	return reply.Product, reply.Error
 }
 
+func (m *apiRPCServer) GetProductByAnyField(req GetProductByAnyFieldRequest, resp *GetProductByAnyFieldResponse) error {
+	product, err := m.impl.GetProductByAnyField(req.RequestContext, req.FieldName, req.FieldValue)
+	resp.Product = product
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) GetProductByAnyField(rc RequestContext, fieldName string, fieldValue any) (Product, error) {
+
+	var reply GetProductByAnyFieldResponse
+	err := m.client.Call("Plugin.GetProductByAnyField", GetProductByAnyFieldRequest{
+		RequestContext: rc,
+		FieldName:      fieldName,
+		FieldValue:     fieldValue,
+	}, &reply)
+	if err != nil {
+		return Product{}, err
+	}
+
+	return reply.Product, reply.Error
+}
+
+func (m *apiRPCServer) CreateProduct(req CreateProductRequest, resp *CreateProductResponse) error {
+	productId, err := m.impl.CreateProduct(req.RequestContext, req.Request)
+	resp.ProductId = productId
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) CreateProduct(rc RequestContext, request ProductCreateEditRequest) (uint, error) {
+
+	var reply CreateProductResponse
+	err := m.client.Call("Plugin.CreateProduct", CreateProductRequest{
+		RequestContext: rc,
+		Request:        request,
+	}, &reply)
+	if err != nil {
+		return 0, err
+	}
+
+	return reply.ProductId, reply.Error
+}
+
 func (m *apiRPCServer) GetOrderById(req GetOrderByIdRequest, resp *GetOrderByIdResponse) error {
 	order, err := m.impl.GetOrderById(req.RequestContext, req.OrderId)
 	resp.Order = order
@@ -446,4 +595,46 @@ func (m *apiRPCClient) GetOrders(context RequestContext, request OrdersRequest) 
 	}
 
 	return reply.OrdersResponse, reply.Error
+}
+
+func (m *apiRPCServer) CreateInvoice(req CreateInvoiceRequest, resp *CreateInvoiceResponse) error {
+	invoiceId, error, errorResponse := m.impl.CreateInvoice(req.Context, req.Request)
+
+	resp.InvoiceId = invoiceId
+	resp.Error = encodableError(error)
+	resp.ErrorResponse = errorResponse
+	return nil
+}
+func (m *apiRPCClient) CreateInvoice(context RequestContext, request InvoiceCreateUpdateRequest) (uint, error, InvoiceErrorResponse) {
+
+	var reply CreateInvoiceResponse
+	err := m.client.Call("Plugin.CreateInvoice", CreateInvoiceRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return 0, err, InvoiceErrorResponse{}
+	}
+
+	return reply.InvoiceId, reply.Error, reply.ErrorResponse
+}
+func (m *apiRPCServer) GetInvoiceExistsByDocument(req GetInvoiceExistsByDocumentRequest, resp *GetInvoiceExistsByDocumentResponse) error {
+	exists, error := m.impl.GetInvoiceExistsByDocument(req.Context, req.Document)
+
+	resp.Exists = exists
+	resp.Error = encodableError(error)
+	return nil
+}
+func (m *apiRPCClient) GetInvoiceExistsByDocument(context RequestContext, document string) (bool, error) {
+
+	var reply GetInvoiceExistsByDocumentResponse
+	err := m.client.Call("Plugin.GetInvoiceExistsByDocument", GetInvoiceExistsByDocumentRequest{
+		Context:  context,
+		Document: document,
+	}, &reply)
+	if err != nil {
+		return false, err
+	}
+
+	return reply.Exists, reply.Error
 }

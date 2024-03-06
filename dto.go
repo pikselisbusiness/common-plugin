@@ -682,3 +682,53 @@ type ProductsResponse struct {
 	AvailablePriceRange PriceRange `json:"availablePriceRange"`
 	Brands              []string   `json:"brands"`
 }
+type ProductImage struct {
+	FileName string `json:"fileName"`
+	FileBlob []byte `json:"fileBlob"`
+}
+type ProductCreateEditRequest struct {
+	Product             Product           `json:"product"`
+	MetaValues          map[string]string `json:"metaValues"`
+	SelectedCategoryIds []int32           `json:"selectedCategoryIds"`
+	// Only for new images
+	Images []ProductImage `json:"images"`
+	// For deleting existing images
+	DeleteImagesKeys []int32 `json:"deleteImagesKeys"`
+}
+
+type InvoiceSend struct {
+	ToSend bool `json:"toSend"`
+}
+type InvoiceCreateUpdateRequest struct {
+	InvoiceId            int32                `json:"invoiceId"` // FOR update only
+	IsPurchase           bool                 `json:"isPurchase"`
+	DocSeries            string               `json:"docSeries"`
+	Document             string               `json:"document"`
+	Document2            string               `json:"document2"`
+	CompanyId            int32                `json:"companyId"`
+	TotalCurrency        string               `json:"totalCurrency"`
+	InvoiceDate          time.Time            `json:"invoiceDate"`
+	PayUntilDate         time.Time            `json:"payUntilDate"`
+	Comment              string               `json:"comment"`
+	ReceiptNo            string               `json:"receiptNo"`
+	PdfBlankId           int32                `json:"pdfBlankId"`
+	IsafForm             bool                 `json:"isafForm"`
+	ReceiveDate          time.Time            `json:"receiveDate"`
+	WorkerId             int32                `json:"workerId"`
+	FromWarehouse        string               `json:"fromWarehouse"`
+	ToWarehouse          string               `json:"toWarehouse"`
+	Products             []InvoiceProduct     `json:"products"`
+	DeleteProductLineIds []int32              `json:"deleteProductLineIds"` // FOR update only
+	Operation            string               `json:"operation"`
+	Costs                []InvoiceCost        `json:"costs"`
+	AutoSend             InvoiceSend          `json:"autoSend"`
+	ExtraSettings        ExtraInvoiceSettings `json:"extraSettings"`
+	PosData              InvoicePosData       `json:"posData"`
+}
+
+type InvoiceErrorResponse struct {
+	ErrorAtProduct  bool
+	ErrorProductKey int
+	ErrorField      string
+	ErrorMessage    string
+}
