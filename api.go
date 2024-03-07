@@ -13,6 +13,7 @@ type API interface {
 	GetCompanyById(context RequestContext, companyId uint) (Company, error)
 	GetCompaniesMap(context RequestContext, companyIds []uint) (map[uint]Company, error)
 	GetCompanyByCode(context RequestContext, companyCode string) (Company, error)
+	GetCompanyByVatCode(context RequestContext, companyVatCode string) (Company, error)
 	CreateCompany(context RequestContext, company Company) (uint, error)
 
 	GetProducts(context RequestContext, request ProductsRequest) (ProductsResponse, error)

@@ -102,6 +102,16 @@ type GetCompanyByCodeResponse struct {
 	Error   error
 }
 
+// GetCompanyByVatCode
+type GetCompanyByVatCodeRequest struct {
+	Context        RequestContext
+	CompanyVatCode string
+}
+type GetCompanyByVatCodeResponse struct {
+	Company Company
+	Error   error
+}
+
 // CreateCompany
 type CreateCompanyRequest struct {
 	Context RequestContext
@@ -396,6 +406,28 @@ func (m *apiRPCClient) GetCompanyByCode(context RequestContext, companyCode stri
 	err := m.client.Call("Plugin.GetCompanyByCode", GetCompanyByCodeRequest{
 		Context:     context,
 		CompanyCode: companyCode,
+	}, &reply)
+	if err != nil {
+		return Company{}, err
+	}
+
+	return reply.Company, reply.Error
+}
+
+func (m *apiRPCServer) GetCompanyByVatCode(req GetCompanyByVatCodeRequest, resp *GetCompanyByVatCodeResponse) error {
+	company, err := m.impl.GetCompanyByVatCode(req.Context, req.CompanyVatCode)
+
+	resp.Company = company
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) GetCompanyByVatCode(context RequestContext, companyVatCode string) (Company, error) {
+
+	var reply GetCompanyByVatCodeResponse
+	err := m.client.Call("Plugin.GetCompanyByVatCode", GetCompanyByVatCodeRequest{
+		Context:        context,
+		CompanyVatCode: companyVatCode,
 	}, &reply)
 	if err != nil {
 		return Company{}, err
