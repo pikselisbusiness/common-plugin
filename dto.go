@@ -764,3 +764,9 @@ type InvoiceErrorResponse struct {
 	ErrorField      string
 	ErrorMessage    string
 }
+type OrderErrorResponse struct {
+	ErrorAtProduct  bool
+	ErrorProductKey int
+	ErrorField      string
+	ErrorMessage    string
+}

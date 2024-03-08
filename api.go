@@ -24,7 +24,7 @@ type API interface {
 
 	GetOrderById(context RequestContext, orderId uint) (Order, error)
 	GetOrders(context RequestContext, request OrdersRequest) (OrdersResponse, error)
-	CreateOrder(context RequestContext, request OrderCreateRequest) (uint, error)
+	CreateOrder(context RequestContext, request OrderCreateRequest) (uint, error, OrderErrorResponse)
 
 	CreateInvoice(context RequestContext, request InvoiceCreateUpdateRequest) (uint, error, InvoiceErrorResponse)
 	GetInvoiceExistsByDocument(context RequestContext, document string) (bool, error)
