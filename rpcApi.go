@@ -193,7 +193,7 @@ type GetOrderByIdResponse struct {
 	Error error
 }
 
-// GetDivisions
+// GetOrders
 type GetOrdersRequest struct {
 	Context RequestContext
 	Request OrdersRequest
@@ -201,6 +201,16 @@ type GetOrdersRequest struct {
 type GetOrdersResponse struct {
 	OrdersResponse OrdersResponse
 	Error          error
+}
+
+// CreateOrder
+type CreateOrderRequest struct {
+	Context RequestContext
+	Request OrderCreateRequest
+}
+type CreateOrderResponse struct {
+	OrderId uint
+	Error   error
 }
 
 // CreateInvoice
@@ -629,6 +639,27 @@ func (m *apiRPCClient) GetOrders(context RequestContext, request OrdersRequest) 
 	return reply.OrdersResponse, reply.Error
 }
 
+func (m *apiRPCServer) CreateOrder(req CreateOrderRequest, resp *CreateOrderResponse) error {
+	orderId, err := m.impl.CreateOrder(req.Context, req.Request)
+
+	resp.OrderId = orderId
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) CreateOrder(context RequestContext, request OrderCreateRequest) (uint, error) {
+
+	var reply CreateOrderResponse
+	err := m.client.Call("Plugin.CreateOrder", CreateOrderRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return 0, err
+	}
+
+	return reply.OrderId, reply.Error
+}
 func (m *apiRPCServer) CreateInvoice(req CreateInvoiceRequest, resp *CreateInvoiceResponse) error {
 	invoiceId, error, errorResponse := m.impl.CreateInvoice(req.Context, req.Request)
 

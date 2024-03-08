@@ -615,7 +615,39 @@ type ItemFilter struct {
 	Value    string `json:"value" query:"value"`
 	Field    string `json:"field" query:"field"`
 }
-
+type OrderCreateRequest struct {
+	OrderId                int32                `json:"orderId"`
+	Date                   time.Time            `json:"date"`
+	ExpiryDate             time.Time            `json:"expiryDate"`
+	CompanyId              int32                `json:"companyId"`
+	IsOrder                bool                 `json:"isOrder"`
+	IsProforma             bool                 `json:"isProforma"`
+	Type                   string               `json:"type"`
+	Comments               string               `json:"comments"`
+	CurrencyId             int32                `json:"currencyId"`
+	Currency               string               `json:"currency"`
+	Period                 int32                `json:"period"`
+	StatusLetter           string               `json:"statusLetter"`
+	Title                  string               `json:"title"`
+	ExternalUserId         uint                 `json:"externalUserId"`
+	Email                  string               `json:"email"`
+	ShippingAddress        OrderShippingAddress `json:"shippingAddress"`
+	PickupLocation         OrderPickupLocation  `json:"pickupLocation"`
+	PaymentId              uint                 `json:"paymentId"`
+	PaymentType            string               `json:"paymentType"`
+	PaymentIsCod           bool                 `json:"paymentIsCod"`
+	PaymentInnerType       string               `json:"paymentInnerType"`
+	ShippingId             uint                 `json:"shippingId"`
+	ShippingMethodSelector string               `json:"shippingMethodSelector"`
+	ShippingMethodName     string               `json:"shippingMethodName"`
+	TrackingNumber         string               `json:"trackingNumber"`
+	TrackingType           string               `json:"trackingType"`
+	ReportType             string               `json:"reportType"` // PDF type
+	PdfBlankId             int32                `json:"pdfBlankId"`
+	Products               []OrderLine          `json:"products"`
+	Token                  string               `json:"token"`
+	PaymentReferenceNo     string               `json:"paymentReferenceNo"`
+}
 type OrdersRequest struct {
 	PerPage                      int       `json:"perPage"`
 	Page                         int       `json:"page"`
