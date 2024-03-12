@@ -63,9 +63,9 @@ type RouteContext struct {
 	ModulePermissions []ModuleRightPermission
 }
 
-func (c *RouteContext) JSON(statusCode int, i interface{}) (int, []byte, string) {
+func (c *RouteContext) JSON(statusCode int, i interface{}) RouteResponseRouter {
 	jsonBytes, _ := json.Marshal(i)
-	return statusCode, jsonBytes, "application/json"
+	return RouteResponseRouter{statusCode, jsonBytes, "application/json"}
 }
 
 func (c *RouteContext) Param(name string) string {
