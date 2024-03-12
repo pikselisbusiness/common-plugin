@@ -8,8 +8,14 @@ type RouteProps struct {
 	Body    []byte
 }
 
+type RouteResponseRouter struct {
+	Status      int
+	Body        []byte
+	ContentType string
+}
+
 // response code, bytes and application type (e.g. application/json)
-type HandlerFunc func(rc RouteContext) (int, []byte, string)
+type HandlerFunc func(rc RouteContext) RouteResponseRouter
 
 type Route struct {
 	Type        string
@@ -53,19 +59,19 @@ func (s *InnerRouter) DELETE(url string, handlerFunc HandlerFunc) {
 		HandlerFunc: handlerFunc,
 	})
 }
-func (s *InnerRouter) HandleRoute(routeType, url string, rc RouteContext) (int, []byte, string) {
+func (s *InnerRouter) HandleRoute(routeType, url string, rc RouteContext) RouteResponseRouter {
 	for _, route := range s.Routes {
 		if route.Type == routeType && route.Url == url {
 			return route.HandlerFunc(rc)
 		}
 	}
-	return 500, nil, "application/json"
+	return RouteResponseRouter{500, nil, "application/json"}
 }
 
-func ToJSON(statusCode int, i interface{}) (int, []byte) {
+func ToJSON(statusCode int, i interface{}) RouteResponseRouter {
 
-	jsonTest, _ := json.Marshal(i)
+	jsonBytes, _ := json.Marshal(i)
 
-	return statusCode, jsonTest
+	return RouteResponseRouter{statusCode, jsonBytes, "application/json"}
 
 }
