@@ -8,7 +8,8 @@ type RouteProps struct {
 	Body    []byte
 }
 
-type HandlerFunc func(rc RouteContext) (int, []byte)
+// response code, bytes and application type (e.g. application/json)
+type HandlerFunc func(rc RouteContext) (int, []byte, string)
 
 type Route struct {
 	Type        string
@@ -52,13 +53,13 @@ func (s *InnerRouter) DELETE(url string, handlerFunc HandlerFunc) {
 		HandlerFunc: handlerFunc,
 	})
 }
-func (s *InnerRouter) HandleRoute(routeType, url string, rc RouteContext) (int, []byte) {
+func (s *InnerRouter) HandleRoute(routeType, url string, rc RouteContext) (int, []byte, string) {
 	for _, route := range s.Routes {
 		if route.Type == routeType && route.Url == url {
 			return route.HandlerFunc(rc)
 		}
 	}
-	return 500, nil
+	return 500, nil, "application/json"
 }
 
 func ToJSON(statusCode int, i interface{}) (int, []byte) {

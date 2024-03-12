@@ -49,6 +49,8 @@ type RouteUrl struct {
 type RouteResponse struct {
 	Code int
 	I    []byte
+	// If no content type is provided - application/json is used
+	ContentType string
 }
 
 type RouteContext struct {
@@ -61,9 +63,9 @@ type RouteContext struct {
 	ModulePermissions []ModuleRightPermission
 }
 
-func (c *RouteContext) JSON(statusCode int, i interface{}) (int, []byte) {
-	jsonTest, _ := json.Marshal(i)
-	return statusCode, jsonTest
+func (c *RouteContext) JSON(statusCode int, i interface{}) (int, []byte, string) {
+	jsonBytes, _ := json.Marshal(i)
+	return statusCode, jsonBytes, "application/json"
 }
 
 func (c *RouteContext) Param(name string) string {

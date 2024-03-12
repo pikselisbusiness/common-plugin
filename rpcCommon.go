@@ -60,8 +60,9 @@ type HandleRouteRequest struct {
 }
 
 type HandleRouteResponse struct {
-	Code int
-	I    []byte
+	Code        int
+	I           []byte
+	ContentType string
 }
 
 type GetRoutesResponse struct {
@@ -186,6 +187,7 @@ func (m *CommonServerRPC) HandleRoute(req HandleRouteRequest, resp *HandleRouteR
 
 		resp.Code = response.Code
 		resp.I = response.I
+		resp.ContentType = response.ContentType
 	}
 	return nil
 }
