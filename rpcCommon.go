@@ -12,7 +12,7 @@ import (
 	"sync"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/hashicorp/go-plugin"
+	"github.com/pikselisbusiness/go-plugin"
 )
 
 func init() {

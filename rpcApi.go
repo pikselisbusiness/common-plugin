@@ -3,7 +3,7 @@ package shared
 import (
 	"net/rpc"
 
-	"github.com/hashicorp/go-plugin"
+	"github.com/pikselisbusiness/go-plugin"
 )
 
 type apiRPCClient struct {

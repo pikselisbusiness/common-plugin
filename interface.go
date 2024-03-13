@@ -1,7 +1,7 @@
 package shared
 
 import (
-	"github.com/hashicorp/go-plugin"
+	"github.com/pikselisbusiness/go-plugin"
 )
 
 // Handshake is a common handshake that is shared by plugin and host.

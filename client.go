@@ -1,7 +1,7 @@
 package shared
 
 import (
-	"github.com/hashicorp/go-plugin"
+	"github.com/pikselisbusiness/go-plugin"
 )
 
 func ClientMain(pluginImplementation any) {

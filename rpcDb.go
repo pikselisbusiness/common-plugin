@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/rpc"
 
-	"github.com/hashicorp/go-plugin"
+	"github.com/pikselisbusiness/go-plugin"
 )
 
 type dbRPCClient struct {
