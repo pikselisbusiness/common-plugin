@@ -203,6 +203,25 @@ type GetOrdersResponse struct {
 	Error          error
 }
 
+// GetCountryByName
+type GetCountryByNameRequest struct {
+	Context RequestContext
+	Name    string
+}
+type GetCountryByNameResponse struct {
+	Country Country
+	Error   error
+}
+
+// GetAllCountries
+type GetAllCountriesRequest struct {
+	Context RequestContext
+}
+type GetAllCountriesResponse struct {
+	Countries []Country
+	Error     error
+}
+
 // CreateOrder
 type CreateOrderRequest struct {
 	Context RequestContext
@@ -662,6 +681,50 @@ func (m *apiRPCClient) CreateOrder(context RequestContext, request OrderCreateRe
 
 	return reply.OrderId, reply.Error, reply.ErrorResponse
 }
+
+func (m *apiRPCServer) GetCountryByName(req GetCountryByNameRequest, resp *GetCountryByNameResponse) error {
+	data, err := m.impl.GetCountryByName(req.Context, req.Name)
+
+	resp.Country = data
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) GetCountryByName(context RequestContext, name string) (Country, error) {
+
+	var reply GetCountryByNameResponse
+	err := m.client.Call("Plugin.GetCountryByName", GetCountryByNameRequest{
+		Context: context,
+		Name:    name,
+	}, &reply)
+	if err != nil {
+		return Country{}, err
+	}
+
+	return reply.Country, reply.Error
+}
+
+func (m *apiRPCServer) GetAllCountries(req GetAllCountriesRequest, resp *GetAllCountriesResponse) error {
+	data, err := m.impl.GetAllCountries(req.Context)
+
+	resp.Countries = data
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) GetAllCountries(context RequestContext) ([]Country, error) {
+
+	var reply GetAllCountriesResponse
+	err := m.client.Call("Plugin.GetAllCountries", GetAllCountriesRequest{
+		Context: context,
+	}, &reply)
+	if err != nil {
+		return []Country{}, err
+	}
+
+	return reply.Countries, reply.Error
+}
+
 func (m *apiRPCServer) CreateInvoice(req CreateInvoiceRequest, resp *CreateInvoiceResponse) error {
 	invoiceId, error, errorResponse := m.impl.CreateInvoice(req.Context, req.Request)
 

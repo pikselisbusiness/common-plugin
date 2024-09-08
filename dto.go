@@ -89,6 +89,7 @@ type InvoicesRequest struct {
 	CompanyIds              []uint
 	ExcludeCompanyIds       []uint
 	OrderWay                string
+	Statuses                []string
 }
 type InvoicesListResponse struct {
 	Success                 bool               `json:"success"`
@@ -137,6 +138,7 @@ type InvoiceFull struct {
 
 	Company    Company `json:"company,omitempty"`
 	IsVerified bool    `json:"isVerified"`
+	Status     string  `json:"status"`
 }
 type ExtraInvoiceSettings struct {
 	IsafForm bool `json:"isafForm"`
@@ -769,4 +771,14 @@ type OrderErrorResponse struct {
 	ErrorProductKey int
 	ErrorField      string
 	ErrorMessage    string
+}
+
+type Country struct {
+	Country         string    `json:"country"`
+	ShortCode       string    `json:"shortCode"`
+	CountryId       int32     `json:"countryId"`
+	CreatedAt       time.Time `json:"createdAt"`
+	CratedUserInfo  UserInfo  `json:"createdUserInfo"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+	UpdatedUserInfo UserInfo  `json:"updatedUserInfo"`
 }
