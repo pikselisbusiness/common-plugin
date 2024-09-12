@@ -730,6 +730,12 @@ type ProductCreateEditRequest struct {
 	DeleteImagesKeys []int32 `json:"deleteImagesKeys"`
 }
 
+type ProductCategoriesRequest struct {
+	SelectInEshop bool
+}
+type ProductCategoriesResponse struct {
+	Categories []ProductCategoriesShort `json:"categories"`
+}
 type InvoiceSend struct {
 	ToSend bool `json:"toSend"`
 }

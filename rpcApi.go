@@ -152,6 +152,16 @@ type GetProductsMapResponse struct {
 	Error    error
 }
 
+// GetProducts
+type GetProductCategoriesRequest struct {
+	Context RequestContext
+	Request ProductCategoriesRequest
+}
+type GetProductCategoriesResponse struct {
+	Response ProductCategoriesResponse
+	Error    error
+}
+
 // GetProductById
 type GetProductByIdRequest struct {
 	RequestContext RequestContext
@@ -614,6 +624,28 @@ func (m *apiRPCClient) CreateProduct(rc RequestContext, request ProductCreateEdi
 	}
 
 	return reply.ProductId, reply.Error
+}
+
+func (m *apiRPCServer) GetProductCategories(req GetProductCategoriesRequest, resp *GetProductCategoriesResponse) error {
+	response, err := m.impl.GetProductCategories(req.Context, req.Request)
+
+	resp.Response = response
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) GetProductCategories(context RequestContext, request ProductCategoriesRequest) (ProductCategoriesResponse, error) {
+
+	var reply GetProductCategoriesResponse
+	err := m.client.Call("Plugin.GetProductCategories", GetProductCategoriesRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return ProductCategoriesResponse{}, err
+	}
+
+	return reply.Response, reply.Error
 }
 
 func (m *apiRPCServer) GetOrderById(req GetOrderByIdRequest, resp *GetOrderByIdResponse) error {
