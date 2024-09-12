@@ -18,8 +18,11 @@ type RouteResponseRouter struct {
 type HandlerFunc func(rc RouteContext) RouteResponseRouter
 
 type Route struct {
-	Type        string
-	Url         string
+	Type string
+	Url  string
+	// Possible to skip auth for route - to implement your own auth
+	// Use with caution
+	SkipAuth    bool
 	HandlerFunc HandlerFunc
 }
 
@@ -27,35 +30,60 @@ type InnerRouter struct {
 	Routes []*Route
 }
 
-func (s *InnerRouter) GET(url string, handlerFunc HandlerFunc) {
+type routeChecker struct {
+	skipAuth bool
+}
+
+type RouteOption func(*routeChecker)
+
+// SkipAuth configures if you want to skip auth for route.
+func SkipAuth(v bool) RouteOption {
+	return func(c *routeChecker) {
+		c.skipAuth = v
+	}
+}
+func newRouteChecker(configs []RouteOption) *routeChecker {
+	checker := &routeChecker{skipAuth: false}
+	for _, configure := range configs {
+		configure(checker)
+	}
+	return checker
+}
+
+func (s *InnerRouter) GET(url string, handlerFunc HandlerFunc, options ...RouteOption) {
+	checker := newRouteChecker(options)
 
 	s.Routes = append(s.Routes, &Route{
 		Type:        "GET",
 		Url:         url,
+		SkipAuth:    checker.skipAuth,
 		HandlerFunc: handlerFunc,
 	})
 }
-func (s *InnerRouter) POST(url string, handlerFunc HandlerFunc) {
-
+func (s *InnerRouter) POST(url string, handlerFunc HandlerFunc, options ...RouteOption) {
+	checker := newRouteChecker(options)
 	s.Routes = append(s.Routes, &Route{
 		Type:        "POST",
 		Url:         url,
+		SkipAuth:    checker.skipAuth,
 		HandlerFunc: handlerFunc,
 	})
 }
-func (s *InnerRouter) PUT(url string, handlerFunc HandlerFunc) {
-
+func (s *InnerRouter) PUT(url string, handlerFunc HandlerFunc, options ...RouteOption) {
+	checker := newRouteChecker(options)
 	s.Routes = append(s.Routes, &Route{
 		Type:        "PUT",
 		Url:         url,
+		SkipAuth:    checker.skipAuth,
 		HandlerFunc: handlerFunc,
 	})
 }
-func (s *InnerRouter) DELETE(url string, handlerFunc HandlerFunc) {
-
+func (s *InnerRouter) DELETE(url string, handlerFunc HandlerFunc, options ...RouteOption) {
+	checker := newRouteChecker(options)
 	s.Routes = append(s.Routes, &Route{
 		Type:        "DELETE",
 		Url:         url,
+		SkipAuth:    checker.skipAuth,
 		HandlerFunc: handlerFunc,
 	})
 }

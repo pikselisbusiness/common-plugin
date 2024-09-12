@@ -44,6 +44,9 @@ type ModuleRightPermission struct {
 type RouteUrl struct {
 	Url  string
 	Type string
+	// Possible to skip auth for route - to implement your own auth
+	// Use with caution
+	SkipAuth bool
 }
 
 type RouteResponse struct {
