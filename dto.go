@@ -708,6 +708,13 @@ type ProductsRequest struct {
 	SelectMerged       bool // merged products by attributes
 	// When selecting merged products (main products of variants) - products could also be expanded and selected with variants
 	ExpandVariations bool
+	// Created from/to, updated from/to
+	CreatedAtFrom          time.Time
+	CreatedAtTo            time.Time
+	UpdatedAtFrom          time.Time
+	UpdatedAtTo            time.Time
+	CreatedOrUpdatedAtFrom time.Time
+	CreatedOrUpdatedAtTo   time.Time
 }
 type ProductsResponse struct {
 	Success             bool       `json:"success"`
