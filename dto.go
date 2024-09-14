@@ -795,3 +795,28 @@ type Country struct {
 	UpdatedAt       time.Time `json:"updatedAt"`
 	UpdatedUserInfo UserInfo  `json:"updatedUserInfo"`
 }
+
+type IntegrationSyncRecord struct {
+	SyncId         uint      `json:"syncId"`
+	Type           string    `json:"type"`
+	Entity         string    `json:"entity"`
+	EntityField    string    `json:"entityField"`
+	LoginName      string    `json:"loginName"`
+	Info           string    `json:"info"`
+	DeviceId       string    `json:"deviceId"`
+	OrganizationId uint      `json:"organizationId"`
+	SyncTime       time.Time `json:"syncTime"`
+}
+
+type IntegrationSyncRecordsRequest struct {
+	Page         int `json:"page"`
+	PerPage      int `json:"perPage"`
+	Type         string
+	Entity       string `json:"entity"`
+	EntityField  string `json:"syncField"`
+	DeviceId     string `json:"deviceId"`
+	SyncTimeFrom time.Time
+	SyncTimeTo   time.Time
+	Login        string
+	Info         string
+}
