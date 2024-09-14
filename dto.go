@@ -817,6 +817,8 @@ type IntegrationSyncRecordsRequest struct {
 	DeviceId     string `json:"deviceId"`
 	SyncTimeFrom time.Time
 	SyncTimeTo   time.Time
-	Login        string
+	LoginName    string
 	Info         string
+	OrderBy      string // by default by syncTime
+	OrderWay     string // by default - DESC
 }
