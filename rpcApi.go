@@ -264,6 +264,35 @@ type GetInvoiceExistsByDocumentResponse struct {
 	Error  error
 }
 
+// CreateIntegrationSyncRecord
+type CreateIntegrationSyncRecordRequest struct {
+	Context    RequestContext
+	SyncRecord IntegrationSyncRecord
+}
+type CreateIntegrationSyncRecordResponse struct {
+	SyncRecordId uint
+	Error        error
+}
+
+// DeleteIntegrationSyncRecordById
+type DeleteIntegrationSyncRecordByIdRequest struct {
+	Context      RequestContext
+	SyncRecordId uint
+}
+type DeleteIntegrationSyncRecordByIdResponse struct {
+	Error error
+}
+
+// GetIntegrationSyncRecords
+type GetIntegrationSyncRecordsRequest struct {
+	Context RequestContext
+	Request IntegrationSyncRecordsRequest
+}
+type GetIntegrationSyncRecordsResponse struct {
+	SyncRecords []IntegrationSyncRecord
+	Error       error
+}
+
 func (m *apiRPCServer) RegisterCronJob(req RegisterCronJobRequest, resp *RegisterCronJobResponse) error {
 	m.impl.RegisterCronJob(req.Schedule)
 
@@ -797,4 +826,66 @@ func (m *apiRPCClient) GetInvoiceExistsByDocument(context RequestContext, docume
 	}
 
 	return reply.Exists, reply.Error
+}
+
+func (m *apiRPCServer) CreateIntegrationSyncRecord(req CreateIntegrationSyncRecordRequest, resp *CreateIntegrationSyncRecordResponse) error {
+	recordId, error := m.impl.CreateIntegrationSyncRecord(req.Context, req.SyncRecord)
+
+	resp.SyncRecordId = recordId
+	resp.Error = encodableError(error)
+	return nil
+}
+func (m *apiRPCClient) CreateIntegrationSyncRecord(context RequestContext, syncRecord IntegrationSyncRecord) (uint, error) {
+
+	var reply CreateIntegrationSyncRecordResponse
+	err := m.client.Call("Plugin.CreateIntegrationSyncRecord", CreateIntegrationSyncRecordRequest{
+		Context:    context,
+		SyncRecord: syncRecord,
+	}, &reply)
+	if err != nil {
+		return 0, err
+	}
+
+	return reply.SyncRecordId, reply.Error
+}
+
+func (m *apiRPCServer) DeleteIntegrationSyncRecordById(req DeleteIntegrationSyncRecordByIdRequest, resp *DeleteIntegrationSyncRecordByIdResponse) error {
+	error := m.impl.DeleteIntegrationSyncRecordById(req.Context, req.SyncRecordId)
+
+	resp.Error = encodableError(error)
+	return nil
+}
+func (m *apiRPCClient) DeleteIntegrationSyncRecordById(context RequestContext, syncRecordId uint) error {
+
+	var reply DeleteIntegrationSyncRecordByIdResponse
+	err := m.client.Call("Plugin.DeleteIntegrationSyncRecordById", DeleteIntegrationSyncRecordByIdRequest{
+		Context:      context,
+		SyncRecordId: syncRecordId,
+	}, &reply)
+	if err != nil {
+		return err
+	}
+
+	return reply.Error
+}
+
+func (m *apiRPCServer) GetIntegrationSyncRecords(req GetIntegrationSyncRecordsRequest, resp *GetIntegrationSyncRecordsResponse) error {
+	records, error := m.impl.GetIntegrationSyncRecords(req.Context, req.Request)
+
+	resp.SyncRecords = records
+	resp.Error = encodableError(error)
+	return nil
+}
+func (m *apiRPCClient) GetIntegrationSyncRecords(context RequestContext, request IntegrationSyncRecordsRequest) ([]IntegrationSyncRecord, error) {
+
+	var reply GetIntegrationSyncRecordsResponse
+	err := m.client.Call("Plugin.GetIntegrationSyncRecords", GetIntegrationSyncRecordsRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return []IntegrationSyncRecord{}, err
+	}
+
+	return reply.SyncRecords, reply.Error
 }
