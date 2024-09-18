@@ -172,6 +172,9 @@ type InvoiceProduct struct {
 	UseCostPriceAsPrice bool
 	DiscountValue       float64 `json:"discountValue"`
 	DiscountType        string  `json:"discountType"`
+	// For returns - this is lineId of original line that is returned
+	ParentLineId  int32 `json:"parentLineId"`
+	RelatedLineId int32 `json:"relatedLineId"`
 }
 type InvoicePosData struct {
 	CashierId  uint   `json:"cashierId"`

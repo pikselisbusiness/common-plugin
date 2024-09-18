@@ -32,6 +32,7 @@ type API interface {
 
 	CreateInvoice(context RequestContext, request InvoiceCreateUpdateRequest) (uint, error, InvoiceErrorResponse)
 	GetInvoiceExistsByDocument(context RequestContext, document string) (bool, error)
+	CreateInvoiceReference(context RequestContext, request InvoiceReference) error
 
 	CreateIntegrationSyncRecord(context RequestContext, sync IntegrationSyncRecord) (uint, error)
 	DeleteIntegrationSyncRecordById(context RequestContext, syncRecordId uint) error
