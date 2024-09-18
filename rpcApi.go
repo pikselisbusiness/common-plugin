@@ -264,6 +264,15 @@ type GetInvoiceExistsByDocumentResponse struct {
 	Error  error
 }
 
+// CreateInvoiceReference
+type CreateInvoiceReferenceRequest struct {
+	Context RequestContext
+	Request InvoiceReference
+}
+type CreateInvoiceReferenceResponse struct {
+	Error error
+}
+
 // CreateIntegrationSyncRecord
 type CreateIntegrationSyncRecordRequest struct {
 	Context    RequestContext
@@ -826,6 +835,25 @@ func (m *apiRPCClient) GetInvoiceExistsByDocument(context RequestContext, docume
 	}
 
 	return reply.Exists, reply.Error
+}
+func (m *apiRPCServer) CreateInvoiceReference(req CreateInvoiceReferenceRequest, resp *CreateInvoiceReferenceResponse) error {
+	error := m.impl.CreateInvoiceReference(req.Context, req.Request)
+
+	resp.Error = encodableError(error)
+	return nil
+}
+func (m *apiRPCClient) CreateInvoiceReference(context RequestContext, request InvoiceReference) error {
+
+	var reply CreateInvoiceReferenceResponse
+	err := m.client.Call("Plugin.CreateInvoiceReference", CreateInvoiceReferenceRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return err
+	}
+
+	return reply.Error
 }
 
 func (m *apiRPCServer) CreateIntegrationSyncRecord(req CreateIntegrationSyncRecordRequest, resp *CreateIntegrationSyncRecordResponse) error {
