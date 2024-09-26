@@ -746,6 +746,56 @@ type ProductCategoriesRequest struct {
 type ProductCategoriesResponse struct {
 	Categories []ProductCategoriesShort `json:"categories"`
 }
+
+type ProductStocksRequest struct {
+	Warehouses       []string
+	ProductIds       []uint
+	PurchaseDateFrom time.Time
+	PurchaseDateTo   time.Time
+	SearchQuery      string
+	Filters          []ItemFilter
+	GroupBy          []string
+	PerPage          int
+}
+
+type ProductStock struct {
+	ProductId         uint      `json:"productId"`
+	Warehouse         string    `json:"warehouse"`
+	Quantity          float64   `json:"quantity"`
+	CostPrice         float64   `json:"costPrice"`
+	CostCurrency      string    `json:"costCurrency"`
+	CostSum           float64   `json:"costSum"`
+	LineId            int32     `json:"lineId"`
+	StockId           int32     `json:"stockId"`
+	InvoiceId         int32     `json:"invoiceId"`
+	Date              time.Time `json:"date"`
+	AccountNo         string    `json:"accountNo"`
+	MeasurementUnit   string    `json:"measurementUnit"`
+	CompanyName       string    `json:"companyName"`
+	CompanyId         uint      `json:"companyId"`
+	RetailPrice       float64   `json:"retailPrice"`
+	RetailCurrency    string    `json:"retailCurrency"`
+	WholesalePrice    float64   `json:"wholesalePrice"`
+	WholesaleCurrency string    `json:"wholesaleCurrency"`
+	ProductInfo       Product   `json:"productInfo"`
+	CategoryNames     []string  `json:"categories"`
+	AverageCostPrice  float64   `json:"averageCostPrice"`
+}
+type StockTotal struct {
+	TotalSum      float64 `json:"totalSum"`
+	TotalCurrency string  `json:"totalCurrency"`
+	TotalQuantity float64 `json:"totalQuantity"`
+	Warehouse     string  `json:"warehouse"`
+}
+type ProductStocksResponse struct {
+	Stocks             []ProductStock
+	TotalQuantity      float64
+	TotalSum           float64
+	TotalCurrency      string
+	TotalsByWarehouses map[string]*StockTotal
+	TotalCount         int64
+}
+
 type InvoiceSend struct {
 	ToSend bool `json:"toSend"`
 }

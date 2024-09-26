@@ -21,6 +21,8 @@ type API interface {
 	GetProductById(context RequestContext, productId uint) (Product, error)
 	GetProductByAnyField(context RequestContext, fieldName string, fieldValue any) (Product, error)
 	GetProductCategories(context RequestContext, request ProductCategoriesRequest) (ProductCategoriesResponse, error)
+	GetProductStocks(context RequestContext, request ProductStocksRequest) (ProductStocksResponse, error)
+
 	CreateProduct(context RequestContext, request ProductCreateEditRequest) (uint, error)
 
 	GetOrderById(context RequestContext, orderId uint) (Order, error)

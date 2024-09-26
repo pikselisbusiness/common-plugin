@@ -183,6 +183,16 @@ type GetProductByAnyFieldResponse struct {
 	Error   error
 }
 
+// GetProductStocks
+type GetProductStocksRequest struct {
+	RequestContext RequestContext
+	Request        ProductStocksRequest
+}
+type GetProductStocksResponse struct {
+	Response ProductStocksResponse
+	Error    error
+}
+
 // CreateProduct
 type CreateProductRequest struct {
 	RequestContext RequestContext
@@ -641,6 +651,27 @@ func (m *apiRPCClient) GetProductByAnyField(rc RequestContext, fieldName string,
 	}
 
 	return reply.Product, reply.Error
+}
+
+func (m *apiRPCServer) GetProductStocks(req GetProductStocksRequest, resp *GetProductStocksResponse) error {
+	response, err := m.impl.GetProductStocks(req.RequestContext, req.Request)
+	resp.Response = response
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) GetProductStocks(rc RequestContext, request ProductStocksRequest) (ProductStocksResponse, error) {
+
+	var reply GetProductStocksResponse
+	err := m.client.Call("Plugin.GetProductStocks", GetProductStocksRequest{
+		RequestContext: rc,
+		Request:        request,
+	}, &reply)
+	if err != nil {
+		return ProductStocksResponse{}, err
+	}
+
+	return reply.Response, reply.Error
 }
 
 func (m *apiRPCServer) CreateProduct(req CreateProductRequest, resp *CreateProductResponse) error {
