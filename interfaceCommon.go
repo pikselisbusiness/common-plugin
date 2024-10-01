@@ -71,10 +71,10 @@ func (c *RouteContext) JSON(statusCode int, i interface{}) RouteResponseRouter {
 	return RouteResponseRouter{statusCode, jsonBytes, "application/json"}
 }
 
-func (c *RouteContext) Param(name string) string {
+func (c *RouteContext) Param(nameSearch string) string {
 
 	for key, name := range c.ParamNames {
-		if name == name {
+		if name == nameSearch {
 			return c.ParamValues[key]
 		}
 	}
