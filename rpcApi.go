@@ -193,6 +193,17 @@ type GetProductStocksResponse struct {
 	Error    error
 }
 
+// GetAvailableProductQuantityByWarehouses
+type GetAvailableProductQuantityByWarehousesRequest struct {
+	RequestContext RequestContext
+	ProductId      uint
+	Warehouses     []string
+}
+type GetAvailableProductQuantityByWarehousesResponse struct {
+	Quantity float64
+	Error    error
+}
+
 // CreateProduct
 type CreateProductRequest struct {
 	RequestContext RequestContext
@@ -673,7 +684,27 @@ func (m *apiRPCClient) GetProductStocks(rc RequestContext, request ProductStocks
 
 	return reply.Response, reply.Error
 }
+func (m *apiRPCServer) GetAvailableProductQuantityByWarehouses(req GetAvailableProductQuantityByWarehousesRequest, resp *GetAvailableProductQuantityByWarehousesResponse) error {
+	quantity, err := m.impl.GetAvailableProductQuantityByWarehouses(req.RequestContext, req.ProductId, req.Warehouses)
+	resp.Quantity = quantity
+	resp.Error = encodableError(err)
 
+	return nil
+}
+func (m *apiRPCClient) GetAvailableProductQuantityByWarehouses(rc RequestContext, productId uint, warehouses []string) (float64, error) {
+
+	var reply GetAvailableProductQuantityByWarehousesResponse
+	err := m.client.Call("Plugin.GetAvailableProductQuantityByWarehouses", GetAvailableProductQuantityByWarehousesRequest{
+		RequestContext: rc,
+		ProductId:      productId,
+		Warehouses:     warehouses,
+	}, &reply)
+	if err != nil {
+		return 0, err
+	}
+
+	return reply.Quantity, reply.Error
+}
 func (m *apiRPCServer) CreateProduct(req CreateProductRequest, resp *CreateProductResponse) error {
 	productId, err := m.impl.CreateProduct(req.RequestContext, req.Request)
 	resp.ProductId = productId

@@ -22,7 +22,7 @@ type API interface {
 	GetProductByAnyField(context RequestContext, fieldName string, fieldValue any) (Product, error)
 	GetProductCategories(context RequestContext, request ProductCategoriesRequest) (ProductCategoriesResponse, error)
 	GetProductStocks(context RequestContext, request ProductStocksRequest) (ProductStocksResponse, error)
-
+	GetAvailableProductQuantityByWarehouses(context RequestContext, productId uint, warehouses []string) (float64, error)
 	CreateProduct(context RequestContext, request ProductCreateEditRequest) (uint, error)
 
 	GetOrderById(context RequestContext, orderId uint) (Order, error)
