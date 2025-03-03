@@ -188,6 +188,8 @@ func (m *CommonServerRPC) HandleRoute(req HandleRouteRequest, resp *HandleRouteR
 		resp.Code = response.Code
 		resp.I = response.I
 		resp.ContentType = response.ContentType
+	} else {
+		fmt.Println("Unimplemented hook.HandleRoute On server side")
 	}
 	return nil
 }
@@ -200,6 +202,7 @@ func (m *CommonClientRPC) HandleRoute(routeType, url string, rc RouteContext) Ro
 		RouteContext: rc,
 	}, &reply)
 	if err != nil {
+		m.logger.Error("Error calling hook.HandleRoute On clinet side", "error", err)
 		return RouteResponse{}
 	}
 
