@@ -7,7 +7,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"net/rpc"
+	"net/url"
 	"reflect"
 	"sync"
 
@@ -18,6 +20,14 @@ import (
 func init() {
 	gob.Register(ErrorString{})
 	gob.Register(json.RawMessage{})
+	gob.Register(HandleRouteRequest{})
+	gob.Register(HandleRouteResponse{})
+	gob.Register(RouteContext{})
+	gob.Register(RequestContext{})
+	gob.Register(&http.Request{})
+	gob.Register(ModuleRightPermission{})
+	gob.Register(&url.Values{})
+
 }
 
 func (p *CommonPlugin) Server(broker *plugin.MuxBroker) (interface{}, error) {
@@ -202,7 +212,7 @@ func (m *CommonClientRPC) HandleRoute(routeType, url string, rc RouteContext) Ro
 		RouteContext: rc,
 	}, &reply)
 	if err != nil {
-		m.logger.Error("Error calling hook.HandleRoute On clinet side", "error", err)
+		m.logger.Error("Error calling hook.HandleRoute On client side", "error", err)
 		return RouteResponse{}
 	}
 
