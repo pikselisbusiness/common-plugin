@@ -429,6 +429,7 @@ type ProductAttribute struct {
 	AttributeId        uint   `json:"attributeId" `
 	AttributeName      string `json:"attributeName"`
 	AttributeColorCode string `json:"attributeColorCode"`
+	AttributeType      string `json:"attributeType"`
 	GroupId            uint   `json:"groupId"`
 	PrestaId           uint   `json:"prestaId"`
 }

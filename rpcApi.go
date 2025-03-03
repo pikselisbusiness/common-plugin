@@ -285,6 +285,16 @@ type GetInvoiceExistsByDocumentResponse struct {
 	Error  error
 }
 
+// PatchUpdateInvoice
+type PatchUpdateInvoiceRequest struct {
+	Context   RequestContext
+	InvoiceId uint
+	Request   map[string]interface{}
+}
+type PatchUpdateInvoiceResponse struct {
+	Error error
+}
+
 // CreateInvoiceReference
 type CreateInvoiceReferenceRequest struct {
 	Context RequestContext
@@ -898,6 +908,27 @@ func (m *apiRPCClient) GetInvoiceExistsByDocument(context RequestContext, docume
 
 	return reply.Exists, reply.Error
 }
+func (m *apiRPCServer) PatchUpdateInvoice(req PatchUpdateInvoiceRequest, resp *PatchUpdateInvoiceResponse) error {
+	error := m.impl.PatchUpdateInvoice(req.Context, req.InvoiceId, req.Request)
+
+	resp.Error = encodableError(error)
+	return nil
+}
+func (m *apiRPCClient) PatchUpdateInvoice(context RequestContext, invoiceId uint, request map[string]interface{}) error {
+
+	var reply PatchUpdateInvoiceResponse
+	err := m.client.Call("Plugin.PatchUpdateInvoice", PatchUpdateInvoiceRequest{
+		Context:   context,
+		InvoiceId: invoiceId,
+		Request:   request,
+	}, &reply)
+	if err != nil {
+		return err
+	}
+
+	return reply.Error
+}
+
 func (m *apiRPCServer) CreateInvoiceReference(req CreateInvoiceReferenceRequest, resp *CreateInvoiceReferenceResponse) error {
 	error := m.impl.CreateInvoiceReference(req.Context, req.Request)
 
