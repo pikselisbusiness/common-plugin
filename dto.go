@@ -876,3 +876,38 @@ type IntegrationSyncRecordsRequest struct {
 	OrderBy      string // by default by syncTime
 	OrderWay     string // by default - DESC
 }
+
+type PosDiscountCard struct {
+	ID              int       `json:"cardId"`
+	CardNumber      string    `json:"cardNumber"`
+	DiscountPercent float64   `json:"discountPercent"`
+	Email           string    `json:"email"`
+	HasAgreedEmail  bool      `json:"hasAgreedEmail"`
+	FirsName        string    `json:"firstName"`
+	LastName        string    `json:"lastName"`
+	Branch          string    `json:"branch"`
+	DivisionId      uint      `json:"divisionId"`
+	ValidUntil      time.Time `json:"validUntil"`
+	PhoneNumber     string    `json:"phoneNumber"`
+	BirthDate       time.Time `json:"birthDate"`
+	Address         string    `json:"address"`
+	Sex             int       `json:"sex"`
+	HasAgreedSms    bool      `json:"hasAgreedSms"`
+	CreatedAt       time.Time `json:"createdAt"`
+	CreatedUserId   int       `json:"createdUserId"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+	UpdatedUserId   uint      `json:"updatedUserId"`
+}
+type PosDiscountCardsRequest struct {
+	CreatedAtFrom          time.Time
+	CreatedAtTo            time.Time
+	UpdatedAtFrom          time.Time
+	UpdatedAtTo            time.Time
+	CreatedOrUpdatedAtFrom time.Time
+	CreatedOrUpdatedAtTo   time.Time
+	Branch                 string
+	DivisionId             uint
+	PerPage                int
+	Page                   int
+	SearchQuery            string
+}

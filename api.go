@@ -41,6 +41,8 @@ type API interface {
 	DeleteIntegrationSyncRecordById(context RequestContext, syncRecordId uint) error
 	GetIntegrationSyncRecords(context RequestContext, request IntegrationSyncRecordsRequest) ([]IntegrationSyncRecord, error)
 
+	GetPosDiscountCards(context RequestContext, request PosDiscountCardsRequest) ([]PosDiscountCard, error)
+
 	// GetProductCategoriesChainByLastChildId(context RequestContext, categoryId uint) ([]ProductCategoriesShort, error)
 }
 

@@ -333,6 +333,16 @@ type GetIntegrationSyncRecordsResponse struct {
 	Error       error
 }
 
+// GetPosDiscountCards
+type GetPosDiscountCardsRequest struct {
+	Context RequestContext
+	Request PosDiscountCardsRequest
+}
+type GetPosDiscountCardsResponse struct {
+	Cards []PosDiscountCard
+	Error error
+}
+
 func (m *apiRPCServer) RegisterCronJob(req RegisterCronJobRequest, resp *RegisterCronJobResponse) error {
 	m.impl.RegisterCronJob(req.Schedule)
 
@@ -1009,4 +1019,25 @@ func (m *apiRPCClient) GetIntegrationSyncRecords(context RequestContext, request
 	}
 
 	return reply.SyncRecords, reply.Error
+}
+
+func (m *apiRPCServer) GetPosDiscountCards(req GetPosDiscountCardsRequest, resp *GetPosDiscountCardsResponse) error {
+	cards, error := m.impl.GetPosDiscountCards(req.Context, req.Request)
+
+	resp.Cards = cards
+	resp.Error = encodableError(error)
+	return nil
+}
+func (m *apiRPCClient) GetPosDiscountCards(context RequestContext, request PosDiscountCardsRequest) ([]PosDiscountCard, error) {
+
+	var reply GetPosDiscountCardsResponse
+	err := m.client.Call("Plugin.GetPosDiscountCards", GetPosDiscountCardsRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return []PosDiscountCard{}, err
+	}
+
+	return reply.Cards, reply.Error
 }
