@@ -96,6 +96,13 @@ type RunCronJobResponse struct {
 	Error error
 }
 
+type RunCronJobWithTagRequest struct {
+	Tag string
+}
+type RunCronJobWithTagResponse struct {
+	Error error
+}
+
 type EmptyRequest struct{}
 type EmptyResponse struct{}
 
@@ -399,6 +406,30 @@ func (m *CommonClientRPC) RunCronJob() error {
 	var reply RunCronJobResponse
 
 	err := m.client.Call("Plugin.RunCronJob", EmptyRequest{}, &reply)
+	if err != nil {
+		return err
+	}
+	return reply.Error
+}
+
+func (m *CommonServerRPC) RunCronJobWithTag(args *RunCronJobWithTagRequest, resp *RunCronJobWithTagResponse) error {
+	// Check if implemented
+	if hook, ok := m.Impl.(interface {
+		RunCronJobWithTag(tag string) error
+	}); ok {
+		err := hook.RunCronJobWithTag(args.Tag)
+		resp.Error = err
+	}
+	return nil
+}
+
+func (m *CommonClientRPC) RunCronJobWithTag(tag string) error {
+
+	var reply RunCronJobWithTagResponse
+
+	err := m.client.Call("Plugin.RunCronJobWithTag", RunCronJobWithTagRequest{
+		Tag: tag,
+	}, &reply)
 	if err != nil {
 		return err
 	}

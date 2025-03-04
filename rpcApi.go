@@ -24,6 +24,15 @@ type RegisterCronJobRequest struct {
 type RegisterCronJobResponse struct {
 }
 
+//RegisterCronJobWithTag
+
+type RegisterCronJobWithTagRequest struct {
+	Tag      string
+	Schedule string
+}
+type RegisterCronJobWithTagResponse struct {
+}
+
 //GetConfigVariable
 
 type GetConfigVariableRequest struct {
@@ -352,6 +361,25 @@ func (m *apiRPCClient) RegisterCronJob(schedule string) {
 
 	var reply RegisterCronJobResponse
 	err := m.client.Call("Plugin.RegisterCronJob", RegisterCronJobRequest{
+		Schedule: schedule,
+	}, &reply)
+	if err != nil {
+		// return err
+	}
+
+	// return nil
+}
+
+func (m *apiRPCServer) RegisterCronJobWithTag(req RegisterCronJobWithTagRequest, resp *RegisterCronJobWithTagResponse) error {
+	m.impl.RegisterCronJobWithTag(req.Tag, req.Schedule)
+
+	return nil
+}
+func (m *apiRPCClient) RegisterCronJobWithTag(tag, schedule string) {
+
+	var reply RegisterCronJobWithTagResponse
+	err := m.client.Call("Plugin.RegisterCronJobWithTag", RegisterCronJobWithTagRequest{
+		Tag:      tag,
 		Schedule: schedule,
 	}, &reply)
 	if err != nil {

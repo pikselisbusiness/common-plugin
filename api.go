@@ -3,6 +3,7 @@ package shared
 // directly.
 type API interface {
 	RegisterCronJob(schedule string)
+	RegisterCronJobWithTag(tag string, schedule string)
 	GetConfigVariable(name string) (string, error)
 	GetUserInfoForUserId(userId uint) UserInfo
 	GetInvoices(request InvoicesRequest) (InvoicesListResponse, error)

@@ -171,6 +171,10 @@ type CommonV2 interface {
 	// RunCronJob is invoked when the plugin cronjob schedule activates
 	RunCronJob() error
 
+	// RunCronJobWithTag is invoked when the plugin cronjob schedule activates with a tag
+	// mulitple cronjobs can be registered with different schedules
+	RunCronJobWithTag(tag string) error
+
 	// GetRoutes returns all routes that plugin has for REST API
 	GetRoutes() []RouteUrl
 	// Execute route - plugin will handle this
