@@ -898,6 +898,10 @@ type PosDiscountCard struct {
 	UpdatedAt       time.Time `json:"updatedAt"`
 	UpdatedUserId   uint      `json:"updatedUserId"`
 }
+type PosDiscountCardsResponse struct {
+	Cards      []PosDiscountCard
+	CardsCount int64
+}
 type PosDiscountCardsRequest struct {
 	CreatedAtFrom          time.Time
 	CreatedAtTo            time.Time

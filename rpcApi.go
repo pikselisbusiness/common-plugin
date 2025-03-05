@@ -348,8 +348,8 @@ type GetPosDiscountCardsRequest struct {
 	Request PosDiscountCardsRequest
 }
 type GetPosDiscountCardsResponse struct {
-	Cards []PosDiscountCard
-	Error error
+	Response PosDiscountCardsResponse
+	Error    error
 }
 
 func (m *apiRPCServer) RegisterCronJob(req RegisterCronJobRequest, resp *RegisterCronJobResponse) error {
@@ -1050,13 +1050,13 @@ func (m *apiRPCClient) GetIntegrationSyncRecords(context RequestContext, request
 }
 
 func (m *apiRPCServer) GetPosDiscountCards(req GetPosDiscountCardsRequest, resp *GetPosDiscountCardsResponse) error {
-	cards, error := m.impl.GetPosDiscountCards(req.Context, req.Request)
+	response, error := m.impl.GetPosDiscountCards(req.Context, req.Request)
 
-	resp.Cards = cards
+	resp.Response = response
 	resp.Error = encodableError(error)
 	return nil
 }
-func (m *apiRPCClient) GetPosDiscountCards(context RequestContext, request PosDiscountCardsRequest) ([]PosDiscountCard, error) {
+func (m *apiRPCClient) GetPosDiscountCards(context RequestContext, request PosDiscountCardsRequest) (PosDiscountCardsResponse, error) {
 
 	var reply GetPosDiscountCardsResponse
 	err := m.client.Call("Plugin.GetPosDiscountCards", GetPosDiscountCardsRequest{
@@ -1064,8 +1064,8 @@ func (m *apiRPCClient) GetPosDiscountCards(context RequestContext, request PosDi
 		Request: request,
 	}, &reply)
 	if err != nil {
-		return []PosDiscountCard{}, err
+		return PosDiscountCardsResponse{}, err
 	}
 
-	return reply.Cards, reply.Error
+	return reply.Response, reply.Error
 }
