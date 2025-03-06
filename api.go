@@ -44,6 +44,9 @@ type API interface {
 
 	GetPosDiscountCards(context RequestContext, request PosDiscountCardsRequest) (PosDiscountCardsResponse, error)
 
+	GetCustomFields(context RequestContext, request CustomFieldsRequest) (CustomFieldsResponse, error)
+	CreateCustomField(context RequestContext, request CustomField) (uint, error)
+
 	// GetProductCategoriesChainByLastChildId(context RequestContext, categoryId uint) ([]ProductCategoriesShort, error)
 }
 

@@ -915,3 +915,61 @@ type PosDiscountCardsRequest struct {
 	Page                   int
 	SearchQuery            string
 }
+
+type CustomFieldType string
+
+func (s CustomFieldType) IsValid() bool {
+	for _, fieldType := range ValidCustomFieldTypes {
+		if fieldType == s {
+			return true
+		}
+	}
+	return false
+}
+
+var ValidCustomFieldTypes = []CustomFieldType{
+	CustomFieldString, CustomFieldText, CustomFieldFloat, CustomFieldDate, CustomFieldDatetime, CustomFieldBoolean, CustomFieldSelect,
+}
+
+var (
+	CustomFieldString   CustomFieldType = "string"
+	CustomFieldText     CustomFieldType = "text"
+	CustomFieldFloat    CustomFieldType = "float"
+	CustomFieldDate     CustomFieldType = "date"
+	CustomFieldDatetime CustomFieldType = "datetime"
+	CustomFieldBoolean  CustomFieldType = "boolean"
+	CustomFieldSelect   CustomFieldType = "select"
+)
+
+type CustomField struct {
+	ID              uint            `json:"-"`
+	OrganizationId  uint            `json:"-"`
+	CustomFieldId   uint            `json:"customFieldId"`
+	RelatedType     string          `json:"relatedType"`
+	Name            string          `json:"name"`
+	Slug            string          `json:"slug"`
+	Required        bool            `json:"required"`
+	Type            CustomFieldType `json:"type"`
+	Options         json.RawMessage `json:"options"`
+	DisplayInline   bool            `json:"displayInline"`
+	FieldOrder      uint            `json:"fieldOrder"`
+	Active          bool            `json:"active"`
+	ShowInList      bool            `json:"showInList"`
+	ShowOnlyAdmin   bool            `json:"showOnlyAdmin"`
+	IsIndexedField  bool            `json:"isIndexedField"`
+	CreatedAt       time.Time       `json:"createdAt"`
+	CreatedUserInfo UserInfo        `json:"createdUserInfo"`
+	UpdatedUserInfo UserInfo        `json:"updatedUserInfo"`
+	UpdatedAt       time.Time       `json:"updatedAt"`
+}
+
+type CustomFieldsRequest struct {
+	CustomFieldIds []uint
+	Names          []string
+	Slugs          []string
+	RelatedType    string
+	SearchQuery    string // unused
+}
+type CustomFieldsResponse struct {
+	Fields []CustomField
+}

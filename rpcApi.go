@@ -352,6 +352,26 @@ type GetPosDiscountCardsResponse struct {
 	Error    error
 }
 
+// GetCustomFields
+type GetCustomFieldsRequest struct {
+	Context RequestContext
+	Request CustomFieldsRequest
+}
+type GetCustomFieldsResponse struct {
+	Response CustomFieldsResponse
+	Error    error
+}
+
+// CreateCustomField
+type CreateCustomFieldRequest struct {
+	Context RequestContext
+	Request CustomField
+}
+type CreateCustomFieldResponse struct {
+	FieldId uint
+	Error   error
+}
+
 func (m *apiRPCServer) RegisterCronJob(req RegisterCronJobRequest, resp *RegisterCronJobResponse) error {
 	m.impl.RegisterCronJob(req.Schedule)
 
@@ -1068,4 +1088,46 @@ func (m *apiRPCClient) GetPosDiscountCards(context RequestContext, request PosDi
 	}
 
 	return reply.Response, reply.Error
+}
+
+func (m *apiRPCServer) GetCustomFields(req GetCustomFieldsRequest, resp *GetCustomFieldsResponse) error {
+	response, error := m.impl.GetCustomFields(req.Context, req.Request)
+
+	resp.Response = response
+	resp.Error = encodableError(error)
+	return nil
+}
+func (m *apiRPCClient) GetCustomFields(context RequestContext, request CustomFieldsRequest) (CustomFieldsResponse, error) {
+
+	var reply GetCustomFieldsResponse
+	err := m.client.Call("Plugin.GetCustomFields", GetCustomFieldsRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return CustomFieldsResponse{}, err
+	}
+
+	return reply.Response, reply.Error
+}
+
+func (m *apiRPCServer) CreateCustomField(req CreateCustomFieldRequest, resp *CreateCustomFieldResponse) error {
+	fieldId, error := m.impl.CreateCustomField(req.Context, req.Request)
+
+	resp.FieldId = fieldId
+	resp.Error = encodableError(error)
+	return nil
+}
+func (m *apiRPCClient) CreateCustomField(context RequestContext, request CustomField) (uint, error) {
+
+	var reply CreateCustomFieldResponse
+	err := m.client.Call("Plugin.CreateCustomField", CreateCustomFieldRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return 0, err
+	}
+
+	return reply.FieldId, reply.Error
 }
