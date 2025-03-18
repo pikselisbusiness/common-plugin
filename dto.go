@@ -973,3 +973,22 @@ type CustomFieldsRequest struct {
 type CustomFieldsResponse struct {
 	Fields []CustomField
 }
+type EmailSender struct {
+	Host     string
+	Name     string
+	Email    string
+	Username string
+	Password string
+	Bcc      string
+}
+type EmailRequest struct {
+	ToName          string
+	ToEmail         string
+	Cc              []string
+	Subject         string
+	Html            string
+	UseVariables    bool
+	Attachments     map[string][]byte
+	UseCustomSender bool
+	Sender          EmailSender
+}

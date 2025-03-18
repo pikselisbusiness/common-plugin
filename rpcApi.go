@@ -372,6 +372,15 @@ type CreateCustomFieldResponse struct {
 	Error   error
 }
 
+// SendEmail
+type SendEmailRequest struct {
+	Context RequestContext
+	Request EmailRequest
+}
+type SendEmailResponse struct {
+	Error error
+}
+
 func (m *apiRPCServer) RegisterCronJob(req RegisterCronJobRequest, resp *RegisterCronJobResponse) error {
 	m.impl.RegisterCronJob(req.Schedule)
 
@@ -1130,4 +1139,24 @@ func (m *apiRPCClient) CreateCustomField(context RequestContext, request CustomF
 	}
 
 	return reply.FieldId, reply.Error
+}
+
+func (m *apiRPCServer) SendEmail(req SendEmailRequest, resp *SendEmailResponse) error {
+	error := m.impl.SendEmail(req.Context, req.Request)
+
+	resp.Error = encodableError(error)
+	return nil
+}
+func (m *apiRPCClient) SendEmail(context RequestContext, request EmailRequest) error {
+
+	var reply SendEmailResponse
+	err := m.client.Call("Plugin.SendEmail", SendEmailRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return err
+	}
+
+	return reply.Error
 }

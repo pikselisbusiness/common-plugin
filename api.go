@@ -47,6 +47,8 @@ type API interface {
 	GetCustomFields(context RequestContext, request CustomFieldsRequest) (CustomFieldsResponse, error)
 	CreateCustomField(context RequestContext, request CustomField) (uint, error)
 
+	SendEmail(context RequestContext, request EmailRequest) error
+
 	// GetProductCategoriesChainByLastChildId(context RequestContext, categoryId uint) ([]ProductCategoriesShort, error)
 }
 
