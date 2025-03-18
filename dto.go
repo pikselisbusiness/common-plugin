@@ -136,9 +136,10 @@ type InvoiceFull struct {
 	InsertUserInfo UserInfo  `json:"insertUserInfo"`
 	UpdateUserInfo UserInfo  `json:"updateUserInfo"`
 
-	Company    Company `json:"company,omitempty"`
-	IsVerified bool    `json:"isVerified"`
-	Status     string  `json:"status"`
+	Company      Company         `json:"company,omitempty"`
+	IsVerified   bool            `json:"isVerified"`
+	Status       string          `json:"status"`
+	CustomFields json.RawMessage `json:"customFields"`
 }
 type ExtraInvoiceSettings struct {
 	IsafForm bool `json:"isafForm"`
