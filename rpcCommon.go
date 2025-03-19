@@ -429,6 +429,7 @@ func (m *CommonClientRPC) RunCronJobWithTag(tag string) error {
 
 	err := m.client.Call("Plugin.RunCronJobWithTag", RunCronJobWithTagRequest{
 		Tag: tag,
+		
 	}, &reply)
 	if err != nil {
 		return err

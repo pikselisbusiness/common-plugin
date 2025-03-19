@@ -675,6 +675,7 @@ type OrdersRequest struct {
 	Filters                      []ItemFilter
 	Token                        string `json:"token"`
 	QueryType                    string `json:"queryType"`
+	OrderIds                     []uint `json:"orderIds"`
 }
 type OrdersResponse struct {
 	Success          bool               `json:"success"`
