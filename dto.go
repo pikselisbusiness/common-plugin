@@ -616,6 +616,7 @@ type Order struct {
 	InvoiceInfo    OrderInvoiceInfo `json:"invoiceInfo"` // if invoice is formed from order - returns invoice info
 	InsertUserInfo UserInfo         `json:"insertUserInfo"`
 	UpdateUserInfo UserInfo         `json:"updateUserInfo"`
+	CustomFields   json.RawMessage  `json:"customFields"`
 }
 type ItemFilter struct {
 	Operator string `json:"operator" query:"operator"`
