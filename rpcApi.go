@@ -381,6 +381,16 @@ type SendEmailResponse struct {
 	Error error
 }
 
+// PatchUpdateOrder
+type PatchUpdateOrderRequest struct {
+	Context RequestContext
+	OrderId uint
+	Request map[string]interface{}
+}
+type PatchUpdateOrderResponse struct {
+	Error error
+}
+
 func (m *apiRPCServer) RegisterCronJob(req RegisterCronJobRequest, resp *RegisterCronJobResponse) error {
 	m.impl.RegisterCronJob(req.Schedule)
 
@@ -1152,6 +1162,26 @@ func (m *apiRPCClient) SendEmail(context RequestContext, request EmailRequest) e
 	var reply SendEmailResponse
 	err := m.client.Call("Plugin.SendEmail", SendEmailRequest{
 		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return err
+	}
+
+	return reply.Error
+}
+func (m *apiRPCServer) PatchUpdateOrder(req PatchUpdateOrderRequest, resp *PatchUpdateOrderResponse) error {
+	error := m.impl.PatchUpdateOrder(req.Context, req.OrderId, req.Request)
+
+	resp.Error = encodableError(error)
+	return nil
+}
+func (m *apiRPCClient) PatchUpdateOrder(context RequestContext, orderId uint, request map[string]interface{}) error {
+
+	var reply PatchUpdateOrderResponse
+	err := m.client.Call("Plugin.PatchUpdateOrder", PatchUpdateOrderRequest{
+		Context: context,
+		OrderId: orderId,
 		Request: request,
 	}, &reply)
 	if err != nil {
