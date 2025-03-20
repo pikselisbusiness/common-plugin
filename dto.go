@@ -855,15 +855,16 @@ type Country struct {
 }
 
 type IntegrationSyncRecord struct {
-	SyncId         uint      `json:"syncId"`
-	Type           string    `json:"type"`
-	Entity         string    `json:"entity"`
-	EntityField    string    `json:"entityField"`
-	LoginName      string    `json:"loginName"`
-	Info           string    `json:"info"`
-	DeviceId       string    `json:"deviceId"`
-	OrganizationId uint      `json:"organizationId"`
-	SyncTime       time.Time `json:"syncTime"`
+	SyncId         uint            `json:"syncId"`
+	Type           string          `json:"type"`
+	Entity         string          `json:"entity"`
+	EntityField    string          `json:"entityField"`
+	LoginName      string          `json:"loginName"`
+	Info           string          `json:"info"`
+	DeviceId       string          `json:"deviceId"`
+	OrganizationId uint            `json:"organizationId"`
+	SyncTime       time.Time       `json:"syncTime"`
+	Extra          json.RawMessage `json:"extra"`
 }
 
 type IntegrationSyncRecordsRequest struct {
