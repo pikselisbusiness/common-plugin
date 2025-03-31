@@ -27,6 +27,7 @@ func init() {
 	gob.Register(&http.Request{})
 	gob.Register(ModuleRightPermission{})
 	gob.Register(&url.Values{})
+	gob.Register(map[string]any{})
 	gob.Register(map[string]interface{}{})
 }
 
