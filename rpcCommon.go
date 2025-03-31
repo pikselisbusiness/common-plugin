@@ -27,7 +27,7 @@ func init() {
 	gob.Register(&http.Request{})
 	gob.Register(ModuleRightPermission{})
 	gob.Register(&url.Values{})
-
+	gob.Register(map[string]interface{}{})
 }
 
 func (p *CommonPlugin) Server(broker *plugin.MuxBroker) (interface{}, error) {
@@ -429,7 +429,6 @@ func (m *CommonClientRPC) RunCronJobWithTag(tag string) error {
 
 	err := m.client.Call("Plugin.RunCronJobWithTag", RunCronJobWithTagRequest{
 		Tag: tag,
-		
 	}, &reply)
 	if err != nil {
 		return err
