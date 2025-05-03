@@ -746,7 +746,9 @@ type ProductCreateEditRequest struct {
 }
 
 type ProductCategoriesRequest struct {
-	SelectInEshop bool
+	SelectInEshop     bool
+	SelectInPriceList bool
+	SelectInWarehouse bool
 }
 type ProductCategoriesResponse struct {
 	Categories []ProductCategoriesShort `json:"categories"`
