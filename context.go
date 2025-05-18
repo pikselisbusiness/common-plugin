@@ -14,4 +14,5 @@ type RequestContext struct {
 	AccessedMethod string
 	UserLanguage   string
 	IsSystemUser   bool
+	IdempotencyKey *string
 }
