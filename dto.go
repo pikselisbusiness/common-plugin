@@ -656,6 +656,7 @@ type OrderCreateRequest struct {
 	Token                  string               `json:"token"`
 	PaymentReferenceNo     string               `json:"paymentReferenceNo"`
 	CustomFields           json.RawMessage      `json:"customFields"`
+	StatusId               uint                 `json:"statusId"`
 }
 type OrdersRequest struct {
 	PerPage                      int       `json:"perPage"`
