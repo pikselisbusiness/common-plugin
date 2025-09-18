@@ -9,7 +9,7 @@ type API interface {
 	GetInvoices(request InvoicesRequest) (InvoicesListResponse, error)
 	GetInvoiceProducts(context RequestContext, invoiceId uint) ([]InvoiceProduct, error)
 	GetInvoiceReferences(context RequestContext, invoiceId uint) ([]InvoiceReference, error)
-	GetDocumentOperations(request DocumentOperationsRequest) (DocumentOperationsResponse, error)
+	GetDocumentOperations(context RequestContext, request DocumentOperationsRequest) (DocumentOperationsResponse, error)
 	GetDivisions(context RequestContext, request DivisionsRequest) ([]Division, error)
 
 	GetCompanyById(context RequestContext, companyId uint) (Company, error)
