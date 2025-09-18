@@ -61,6 +61,15 @@ type GetInvoicesResponse struct {
 	Error    error
 }
 
+// GetDocumentOperations
+type GetDocumentOperationsRequest struct {
+	Request DocumentOperationsRequest
+}
+type GetDocumentOperationsResponse struct {
+	Response DocumentOperationsResponse
+	Error    error
+}
+
 // GetInvoiceProducts
 type GetInvoiceProductsRequest struct {
 	Context   RequestContext
@@ -485,6 +494,27 @@ func (m *apiRPCClient) GetInvoices(request InvoicesRequest) (InvoicesListRespons
 	}, &reply)
 	if err != nil {
 		return InvoicesListResponse{}, err
+	}
+
+	return reply.Response, reply.Error
+}
+
+func (m *apiRPCServer) GetDocumentOperations(req GetDocumentOperationsRequest, resp *GetDocumentOperationsResponse) error {
+	data, err := m.impl.GetDocumentOperations(req.Request)
+
+	resp.Response = data
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) GetDocumentOperations(request DocumentOperationsRequest) (DocumentOperationsResponse, error) {
+
+	var reply GetDocumentOperationsResponse
+	err := m.client.Call("Plugin.GetDocumentOperations", GetDocumentOperationsRequest{
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return DocumentOperationsResponse{}, err
 	}
 
 	return reply.Response, reply.Error

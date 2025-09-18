@@ -190,6 +190,47 @@ type InvoiceReference struct {
 	ReferenceType     string `json:"referenceType"`
 }
 
+type DocumentOperation struct {
+	OperationId uint   `json:"operationId"`
+	Operation   string `json:"operation"`
+	// Whether operation is purchase
+	OperPurchase bool `json:"operPurchase"`
+	// Whether operation is sale
+	OperSale bool `json:"operSale"`
+	// Whether operation is with VAT
+	OperVat      string `json:"operVat"`
+	OperSupplier bool   `json:"operSupplier"`
+	OperBuyer    bool   `json:"operBuyer"`
+	// Whether operation needs payment
+	OperPay                   bool      `json:"operPay"`
+	OperCost                  bool      `json:"operCost"`
+	OperMark                  bool      `json:"operMark"`
+	OperReturn                bool      `json:"operReturn"`
+	OperWarehouse             bool      `json:"operWarehouse"`
+	OperStockTaking           bool      `json:"operStockTaking"`
+	OperWriteOff              bool      `json:"operWriteOff"`
+	CostDebitAccountNo        string    `json:"costDebitAccountNo"`
+	CostCreditAccountNo       string    `json:"costCreditAccountNo"`
+	SaleDebitAccountNo        string    `json:"saleDebitAccountNo"`
+	SaleCreditAccountNo       string    `json:"saleCreditAccountNo"`
+	VatDebitAccountNo         string    `json:"vatDebitAccountNo"`
+	VatCreditAccountNo        string    `json:"vatCreditAccountNo"`
+	ReverseVatDebitAccountNo  string    `json:"reverseVatDebitAccountNo"`
+	ReverseVatCreditAccountNo string    `json:"reverseVatCreditAccountNo"`
+	DebtDebitAccountNo        string    `json:"debtDebitAccountNo"`
+	DebtCreditAccountNo       string    `json:"debtCreditAccountNo"`
+	CreatedAt                 time.Time `json:"createdAt"`
+	CreatedUserId             uint      `json:"createdUserId"`
+	UpdatedAt                 time.Time `json:"updatedAt"`
+	UpdatedUserId             uint      `json:"updatedUserId"`
+}
+type DocumentOperationsRequest struct {
+	OperationType string `json:"operationType"`
+}
+type DocumentOperationsResponse struct {
+	Operations []DocumentOperation `json:"operations"`
+}
+
 /**
 ---- DIVISIONS
 */
