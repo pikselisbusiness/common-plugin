@@ -181,5 +181,5 @@ type CommonV2 interface {
 	HandleRoute(routeType, url string, rc RouteContext) RouteResponse
 
 	// Plugins can handle events such as cart, order, etc.
-	HandleEvent(context RequestContext, event EventEnvelope) error
+	HandleEvent(context RequestContext, event EventEnvelope) (HandleResult, error)
 }

@@ -109,6 +109,7 @@ type HandlEventRequest struct {
 	Event   EventEnvelope
 }
 type HandlEventResponse struct {
+	Result HandleResult
 	Error error
 }
 
@@ -449,16 +450,17 @@ func (m *CommonServerRPC) HandleEvent(args *HandlEventRequest, resp *HandlEventR
 
 	// Check if implemented
 	if hook, ok := m.Impl.(interface {
-		HandleEvent(context RequestContext, event EventEnvelope) error
+		HandleEvent(context RequestContext, event EventEnvelope) (HandleResult, error)
 	}); ok {
-		err := hook.HandleEvent(args.Context, args.Event)
+		result, err := hook.HandleEvent(args.Context, args.Event)
+		resp.Result = result
 		resp.Error = err
 	}
 	return nil
 
 }
 
-func (m *CommonClientRPC) HandleEvent(context RequestContext, event EventEnvelope) error {
+func (m *CommonClientRPC) HandleEvent(context RequestContext, event EventEnvelope) (HandleResult, error) {
 
 	var reply HandlEventResponse
 	err := m.client.Call("Plugin.HandleEvent", HandlEventRequest{
@@ -466,8 +468,8 @@ func (m *CommonClientRPC) HandleEvent(context RequestContext, event EventEnvelop
 		Event:   event,
 	}, &reply)
 	if err != nil {
-		return err
+		return HandleResult{}, err
 	}
 
-	return reply.Error
+	return reply.Result, reply.Error
 }
