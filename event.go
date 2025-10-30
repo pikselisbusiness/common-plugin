@@ -4,19 +4,19 @@ import "time"
 
 type EventEnvelope struct {
 	// routing / meta
-	EventID       string `json:"eventId"`      // unique id (UUID)
-	EventName     string `json:"eventName"`    // "cart.created", "order.paid", "product.updated"
-	EventVersion  uint32 `json:"eventVersion"` // semantic version *of the payload schema*
+	EventID      string `json:"eventId"`      // unique id (UUID)
+	EventName    string `json:"eventName"`    // "cart.created", "order.paid", "product.updated"
+	EventVersion string `json:"eventVersion"` // semantic version *of the payload schema*
 
-	AggregateID   string `json:"aggregateId"`  // CartID/OrderID/ProductID
-	TenantID      string `json:"tenantId,omitempty"`
-	PartitionKey string            `json:"partitionKey,omitempty"` // default AggregateID
+	AggregateID  string `json:"aggregateId"` // CartID/OrderID/ProductID
+	TenantID     string `json:"tenantId,omitempty"`
+	PartitionKey string `json:"partitionKey,omitempty"` // default AggregateID
 
 	OccurredAt    time.Time `json:"occurredAt"`
-	CorrelationID string `json:"correlationId,omitempty"`
-	TraceID       string `json:"traceId,omitempty"`
+	CorrelationID string    `json:"correlationId,omitempty"`
+	TraceID       string    `json:"traceId,omitempty"`
 	// delivery hints
-	Headers      map[string]string `json:"headers,omitempty"`
+	Headers map[string]string `json:"headers,omitempty"`
 
 	// data
 	ContentType string `json:"contentType"` // "application/json;type=CartCreatedV2"
