@@ -179,4 +179,7 @@ type CommonV2 interface {
 	GetRoutes() []RouteUrl
 	// Execute route - plugin will handle this
 	HandleRoute(routeType, url string, rc RouteContext) RouteResponse
+
+	// Plugins can handle events such as cart, order, etc.
+	HandleEvent(context RequestContext, event EventEnvelope) error
 }

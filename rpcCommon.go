@@ -104,6 +104,14 @@ type RunCronJobWithTagResponse struct {
 	Error error
 }
 
+type HandlEventRequest struct {
+	Context RequestContext
+	Event   EventEnvelope
+}
+type HandlEventResponse struct {
+	Error error
+}
+
 type EmptyRequest struct{}
 type EmptyResponse struct{}
 
@@ -434,5 +442,32 @@ func (m *CommonClientRPC) RunCronJobWithTag(tag string) error {
 	if err != nil {
 		return err
 	}
+	return reply.Error
+}
+
+func (m *CommonServerRPC) HandleEvent(args *HandlEventRequest, resp *HandlEventResponse) error {
+
+	// Check if implemented
+	if hook, ok := m.Impl.(interface {
+		HandleEvent(context RequestContext, event EventEnvelope) error
+	}); ok {
+		err := hook.HandleEvent(args.Context, args.Event)
+		resp.Error = err
+	}
+	return nil
+
+}
+
+func (m *CommonClientRPC) HandleEvent(context RequestContext, event EventEnvelope) error {
+
+	var reply HandlEventResponse
+	err := m.client.Call("Plugin.HandleEvent", HandlEventRequest{
+		Context: context,
+		Event:   event,
+	}, &reply)
+	if err != nil {
+		return err
+	}
+
 	return reply.Error
 }
