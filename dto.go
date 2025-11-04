@@ -661,6 +661,7 @@ type Order struct {
 	InsertUserInfo UserInfo         `json:"insertUserInfo"`
 	UpdateUserInfo UserInfo         `json:"updateUserInfo"`
 	CustomFields   json.RawMessage  `json:"customFields"`
+	Token          string           `json:"token"`
 }
 type ItemFilter struct {
 	Operator string `json:"operator" query:"operator"`
