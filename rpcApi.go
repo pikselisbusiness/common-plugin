@@ -63,7 +63,7 @@ type GetInvoicesResponse struct {
 
 // GetDocumentOperations
 type GetDocumentOperationsRequest struct {
-	Context   RequestContext
+	Context RequestContext
 	Request DocumentOperationsRequest
 }
 type GetDocumentOperationsResponse struct {
@@ -251,6 +251,16 @@ type GetOrdersRequest struct {
 type GetOrdersResponse struct {
 	OrdersResponse OrdersResponse
 	Error          error
+}
+
+// GetOrders
+type GetOrderStatusesRequest struct {
+	Context RequestContext
+	Request OrderStatusesRequest
+}
+type GetOrderStatusesResponse struct {
+	OrderStatusesResponse OrderStatusesResponse
+	Error                 error
 }
 
 // GetCountryByName
@@ -907,6 +917,29 @@ func (m *apiRPCClient) GetOrders(context RequestContext, request OrdersRequest) 
 	}
 
 	return reply.OrdersResponse, reply.Error
+}
+
+
+func (m *apiRPCServer) GetOrderStatuses(req GetOrderStatusesRequest, resp *GetOrderStatusesResponse) error {
+	data, err := m.impl.GetOrderStatuses(req.Context, req.Request)
+
+	resp.OrderStatusesResponse = data
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) GetOrderStatuses(context RequestContext, request OrderStatusesRequest) (OrderStatusesResponse, error) {
+
+	var reply GetOrderStatusesResponse
+	err := m.client.Call("Plugin.GetOrderStatuses", GetOrderStatusesRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return OrderStatusesResponse{}, err
+	}
+
+	return reply.OrderStatusesResponse, reply.Error
 }
 
 func (m *apiRPCServer) CreateOrder(req CreateOrderRequest, resp *CreateOrderResponse) error {

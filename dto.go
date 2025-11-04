@@ -553,14 +553,17 @@ type OrderLine struct {
 type OrderStatus struct {
 	StatusId              int32  `json:"statusId"`
 	Selector              int32  `json:"selector"`
-	LabelLt               string `json:"labelLt"`
-	LabelEn               string `json:"labelEn"`
-	LabelRu               string `json:"labelRu"`
+	Code                  string `json:"code"`
+	Name                  string `json:"name"`
+	FormInvoiceOnChange   bool   `json:"formInvoiceOnChange"`
 	IsInvoiceDownloadable bool   `json:"isInvoiceDownloadable"`
 	SendEmail             int    `json:"sendEmail"`
+	ShowAsPaid            bool   `json:"showAsPaid"`
+	IsWaitingForPayment   bool   `json:"isWaitingForPayment"`
 	DoNotPromptEmailText  bool   `json:"doNotPromptEmailText"`
 	IsOrderCompleted      bool   `json:"isOrderCompleted"`
 	DocSeries             string `json:"docSeries"`
+	IsActive              bool   `json:"isActive"`
 }
 type OrderCompanyInfo struct {
 	CompanyName    string `json:"companyName"`
@@ -728,6 +731,14 @@ type OrdersResponse struct {
 	Currency         string             `json:"currency"`
 	TotalsByCurrency map[string]float64 `json:"totalsByCurrency"`
 }
+type OrderStatusesRequest struct {
+	// to be filled
+}
+type OrderStatusesResponse struct {
+	Statuses []OrderStatus `json:"statuses"`
+	Count    int64         `json:"count"`
+}
+
 type PriceRange struct {
 	PriceFrom        float64 `json:"priceFrom"`
 	PriceTo          float64 `json:"priceTo"`

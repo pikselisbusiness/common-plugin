@@ -29,6 +29,7 @@ type API interface {
 
 	GetOrderById(context RequestContext, orderId uint) (Order, error)
 	GetOrders(context RequestContext, request OrdersRequest) (OrdersResponse, error)
+	GetOrderStatuses(context RequestContext, request OrderStatusesRequest) (OrderStatusesResponse, error)
 	CreateOrder(context RequestContext, request OrderCreateRequest) (uint, error, OrderErrorResponse)
 	PatchUpdateOrder(context RequestContext, orderId uint, request map[string]interface{}) error
 
