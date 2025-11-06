@@ -563,6 +563,7 @@ type OrderStatus struct {
 	DoNotPromptEmailText  bool   `json:"doNotPromptEmailText"`
 	IsOrderCompleted      bool   `json:"isOrderCompleted"`
 	DocSeries             string `json:"docSeries"`
+	IsCancelled           bool   `json:"isCancelled"`
 	IsActive              bool   `json:"isActive"`
 }
 type OrderCompanyInfo struct {
