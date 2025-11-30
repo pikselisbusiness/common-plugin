@@ -318,19 +318,6 @@ type Product struct {
 	Description      string  `json:"description"`
 	Countable        bool    `json:"countable"`
 	OrderedQuantity  float64 `json:"orderedQuantity"`
-	Image1           string  `json:"image1"`
-	Image2           string  `json:"image2"`
-	Image3           string  `json:"image3"`
-	Image4           string  `json:"image4"`
-	Image5           string  `json:"image5"`
-	Image6           string  `json:"image6"`
-	Image7           string  `json:"image7"`
-	Image8           string  `json:"image8"`
-	Image9           string  `json:"image9"`
-	Image10          string  `json:"image10"`
-	Image11          string  `json:"image11"`
-	Image12          string  `json:"image12"`
-	Image13          string  `json:"image13"`
 	SupplierCode1    string  `json:"supplierCode1"`
 	SupplierCode2    string  `json:"supplierCode2"`
 	SupplierCode3    string  `json:"supplierCode3"`
@@ -371,13 +358,14 @@ type Product struct {
 	Orderby              uint    `json:"orderby"`
 	MainCategoryId       int32   `json:"mainCategoryId"`
 
-	Quantity     int64    `json:"quantity"`
-	ImageMedium  string   `json:"image"`
-	ImageOrigin  string   `json:"imageOrigin"`
-	ImageSmall   string   `json:"imageSmall"`
-	Images       []string `json:"images"`
-	ImagesOrigin []string `json:"imagesOrigin"`
-	ImagesSmall  []string `json:"imagesSmall"`
+	Quantity     int64              `json:"quantity"`
+	ImageMedium  string             `json:"image"`
+	ImageOrigin  string             `json:"imageOrigin"`
+	ImageSmall   string             `json:"imageSmall"`
+	Images       []string           `json:"images"`
+	ImagesOrigin []string           `json:"imagesOrigin"`
+	ImagesSmall  []string           `json:"imagesSmall"`
+	MediaItems   []ProductMediaFile `json:"mediaItems"`
 
 	ProductWeight   float64 `json:"productWeight"`
 	ProductSize     string  `json:"productSize"`
@@ -419,17 +407,42 @@ type Product struct {
 
 	// InsertDatetime   time.Time `json:"insertDatetime"`
 	// ModifyDatetime   time.Time `json:"modifyDatetime"`
-	InsertUserId   uint                `json:"-"` // inner only
-	UpdateUserId   uint                `json:"-"` // inner only
-	InsertDatetime time.Time           `json:"insertDatetime"`
-	UpdateDatetime time.Time           `json:"updateDatetime"`
-	InsertUserInfo UserInfo            `json:"insertUserInfo"`
-	UpdateUserInfo UserInfo            `json:"updateUserInfo"`
-	External       ProductExternalInfo `json:"external"`
+	CreatedUserId   uint                `json:"-"` // inner only
+	UpdatedUserId   uint                `json:"-"` // inner only
+	CreatedAt       time.Time           `json:"createdAt"`
+	UpdatedAt       time.Time           `json:"updatedAt"`
+	CreatedUserInfo UserInfo            `json:"createdUserInfo"`
+	UpdatedUserInfo UserInfo            `json:"updatedUserInfo"`
+	External        ProductExternalInfo `json:"external"`
 
 	PhotosUpdated bool
 	CustomFields  json.RawMessage `json:"customFields"`
 }
+
+type ProductMediaFile struct {
+	MediaFileId  uint   `json:"mediaFileId"`
+	FileUrl      string `json:"fileUrl"`      // CDN/public URL
+	MediaType    string `json:"mediaType"`    // image, video, pdf, etc.
+	MimeType     string `json:"mimeType"`     // image/jpeg, video/mp4, etc.
+	OriginalName string `json:"originalName"` // original file name
+	Hash         string `json:"hash"`         // (optional) for deduplication
+
+	// extended from assignments
+	OwnerType string `json:"ownerType"` // e.g., "product_merge", "product_variant", "brand", "category"
+	OwnerId   uint   `json:"ownerId"`   // e.g., product_id, merge_id, brand_id
+	SortOrder int    `json:"sortOrder"` // sort order for display
+	IsPrimary bool   `json:"isPrimary"` // primary image indicator
+
+	Content ProductMediaContent `json:"content"`
+
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+type ProductMediaContent struct {
+	AltText       string `json:"altText"`
+	LangShortCode string `json:"langShortCode"`
+}
+
 type ProductPackage struct {
 	PackageId               uint    `json:"packageId"`
 	Quantity                string  `json:"quantity"`
