@@ -716,6 +716,8 @@ type OrderCreateRequest struct {
 	PaymentReferenceNo     string               `json:"paymentReferenceNo"`
 	CustomFields           json.RawMessage      `json:"customFields"`
 	StatusId               uint                 `json:"statusId"`
+	ChannelID              uint                 `json:"channelId"`
+	ExternalOrderID        string               `json:"externalOrderId"`
 }
 type OrdersRequest struct {
 	PerPage                      int       `json:"perPage"`
