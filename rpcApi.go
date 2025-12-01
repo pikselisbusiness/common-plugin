@@ -141,6 +141,26 @@ type CreateCompanyResponse struct {
 	Error     error
 }
 
+// GetCommerceChannelByUUID
+type GetCommerceChannelByUUIDRequest struct {
+	Context     RequestContext
+	ChannelUUID string
+}
+type GetCommerceChannelByUUIDResponse struct {
+	Channel CommerceChannel
+	Error   error
+}
+
+// CreateCommerceChannel
+type CreateCommerceChannelRequest struct {
+	Context RequestContext
+	Channel CommerceChannel
+}
+type CreateCommerceChannelResponse struct {
+	ChannelID uint
+	Error     error
+}
+
 // GetCompaniesMap
 type GetCompaniesMapRequest struct {
 	Context    RequestContext
@@ -685,6 +705,50 @@ func (m *apiRPCClient) CreateCompany(context RequestContext, company Company) (u
 	return reply.CompanyId, reply.Error
 }
 
+func (m *apiRPCServer) GetCommerceChannelByUUID(req GetCommerceChannelByUUIDRequest, resp *GetCommerceChannelByUUIDResponse) error {
+	channel, err := m.impl.GetCommerceChannelByUUID(req.Context, req.ChannelUUID)
+
+	resp.Channel = channel
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) GetCommerceChannelByUUID(context RequestContext, channelUUID string) (CommerceChannel, error) {
+
+	var reply GetCommerceChannelByUUIDResponse
+	err := m.client.Call("Plugin.GetCommerceChannelByUUID", GetCommerceChannelByUUIDRequest{
+		Context:     context,
+		ChannelUUID: channelUUID,
+	}, &reply)
+	if err != nil {
+		return CommerceChannel{}, err
+	}
+
+	return reply.Channel, reply.Error
+}
+
+func (m *apiRPCServer) CreateCommerceChannel(req CreateCommerceChannelRequest, resp *CreateCommerceChannelResponse) error {
+	channelId, err := m.impl.CreateCommerceChannel(req.Context, req.Channel)
+
+	resp.ChannelID = channelId
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) CreateCommerceChannel(context RequestContext, channel CommerceChannel) (uint, error) {
+
+	var reply CreateCommerceChannelResponse
+	err := m.client.Call("Plugin.CreateCommerceChannel", CreateCommerceChannelRequest{
+		Context: context,
+		Channel: channel,
+	}, &reply)
+	if err != nil {
+		return 0, err
+	}
+
+	return reply.ChannelID, reply.Error
+}
+
 func (m *apiRPCServer) GetCompaniesMap(req GetCompaniesMapRequest, resp *GetCompaniesMapResponse) error {
 	companies, err := m.impl.GetCompaniesMap(req.Context, req.CompanyIds)
 
@@ -918,7 +982,6 @@ func (m *apiRPCClient) GetOrders(context RequestContext, request OrdersRequest) 
 
 	return reply.OrdersResponse, reply.Error
 }
-
 
 func (m *apiRPCServer) GetOrderStatuses(req GetOrderStatusesRequest, resp *GetOrderStatusesResponse) error {
 	data, err := m.impl.GetOrderStatuses(req.Context, req.Request)

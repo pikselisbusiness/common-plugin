@@ -17,6 +17,8 @@ type API interface {
 	GetCompanyByCode(context RequestContext, companyCode string) (Company, error)
 	GetCompanyByVatCode(context RequestContext, companyVatCode string) (Company, error)
 	CreateCompany(context RequestContext, company Company) (uint, error)
+	GetCommerceChannelByUUID(context RequestContext, channelUUID string) (CommerceChannel, error)
+	CreateCommerceChannel(context RequestContext, channel CommerceChannel) (uint, error)
 
 	GetProducts(context RequestContext, request ProductsRequest) (ProductsResponse, error)
 	GetProductsMap(context RequestContext, productsIds []uint) (map[uint]Product, error)

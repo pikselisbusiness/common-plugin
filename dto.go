@@ -926,6 +926,19 @@ type Country struct {
 	UpdatedUserInfo UserInfo  `json:"updatedUserInfo"`
 }
 
+type CommerceChannel struct {
+	ChannelID     uint      `json:"channelId"`
+	ChannelUUID   string    `json:"channelUuid"`
+	Name          string    `json:"name"`
+	SourceSystem  string    `json:"sourceSystem"`
+	ChannelType   string    `json:"channelType"`
+	IsActive      bool      `json:"isActive"`
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
+	CreatedUserID uint      `json:"createdUserId"`
+	UpdatedUserID uint      `json:"updatedUserId"`
+}
+
 type IntegrationSyncRecord struct {
 	SyncId         uint            `json:"syncId"`
 	Type           string          `json:"type"`
