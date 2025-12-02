@@ -15,4 +15,5 @@ type RequestContext struct {
 	UserLanguage   string
 	IsSystemUser   bool
 	IdempotencyKey *string
+	RoleIDs        []uint
 }
