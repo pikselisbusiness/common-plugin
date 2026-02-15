@@ -1085,3 +1085,24 @@ type EmailRequest struct {
 	UseCustomSender bool
 	Sender          EmailSender
 }
+type DocumentChargeCreateRequest struct {
+	ChargeTypeID    uint     `json:"chargeTypeId" binding:"required"`
+	CalculationType string   `json:"calculationType" binding:"required,oneof=percentage fixedAmount perUnit"`
+	Percentage      *float64 `json:"percentage"`    // required if calculationType=percentage
+	Amount          *float64 `json:"amount"`        // required if calculationType=fixedAmount, unit price if calculationType=perUnit
+	Quantity        *float64 `json:"quantity"`      // required if calculationType=perUnit (must be provided for document-level charges)
+	IsTaxable       *bool    `json:"isTaxable"`     // override charge type default
+	TaxPercentage   *float64 `json:"taxPercentage"` // override charge type default tax percentage
+	TaxAmount       *float64 `json:"taxAmount"`     // override calculated tax with fixed amount (takes precedence over taxPercentage)
+	Remarks         string   `json:"remarks"`
+}
+type LineChargeCreateRequest struct {
+	ChargeTypeID    uint     `json:"chargeTypeId" binding:"required"`
+	CalculationType string   `json:"calculationType" binding:"required,oneof=percentage fixedAmount perUnit"`
+	Percentage      *float64 `json:"percentage"`    // required if calculationType=percentage
+	Amount          *float64 `json:"amount"`        // required if calculationType=fixedAmount, unit price if calculationType=perUnit
+	IsTaxable       *bool    `json:"isTaxable"`     // override charge type default
+	TaxPercentage   *float64 `json:"taxPercentage"` // override charge type default tax percentage
+	TaxAmount       *float64 `json:"taxAmount"`     // override calculated tax with fixed amount (takes precedence over taxPercentage)
+	Remarks         string   `json:"remarks"`
+}
