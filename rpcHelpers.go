@@ -1,0 +1,200 @@
+package shared
+
+import (
+	"encoding/json"
+	"reflect"
+	"strings"
+	"time"
+)
+
+// structToMap converts a struct to map[string]interface{}
+func structToMap(value interface{}) map[string]interface{} {
+	result := make(map[string]interface{})
+
+	if value == nil {
+		return result
+	}
+
+	// If already a map, return it
+	if m, ok := value.(map[string]interface{}); ok {
+		return m
+	}
+
+	v := reflect.ValueOf(value)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return result
+	}
+
+	t := v.Type()
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		fieldVal := v.Field(i)
+
+		if !fieldVal.CanInterface() {
+			continue
+		}
+
+		// Get column name
+		colName := getColumnNameFromField(field)
+		if colName == "-" || colName == "" {
+			continue
+		}
+
+		result[colName] = fieldVal.Interface()
+	}
+
+	return result
+}
+
+// scanRowsInto scans rows into destination
+func scanRowsInto(rows []map[string]interface{}, dest interface{}) error {
+	destValue := reflect.ValueOf(dest)
+	if destValue.Kind() != reflect.Ptr {
+		return nil
+	}
+
+	destElem := destValue.Elem()
+
+	// Handle slice destination
+	if destElem.Kind() == reflect.Slice {
+		destType := destElem.Type().Elem()
+		for _, row := range rows {
+			item := reflect.New(destType).Elem()
+			mapToStructValue(row, item)
+			destElem.Set(reflect.Append(destElem, item))
+		}
+		return nil
+	}
+
+	// Handle single struct destination
+	if destElem.Kind() == reflect.Struct && len(rows) > 0 {
+		mapToStructValue(rows[0], destElem)
+	}
+
+	return nil
+}
+
+func mapToStructValue(data map[string]interface{}, structVal reflect.Value) {
+	structType := structVal.Type()
+
+	for i := 0; i < structType.NumField(); i++ {
+		field := structVal.Field(i)
+		fieldType := structType.Field(i)
+
+		key := getColumnNameFromField(fieldType)
+		value, ok := data[key]
+		if !ok || value == nil {
+			continue
+		}
+
+		if !field.CanSet() {
+			continue
+		}
+
+		setFieldValue(field, value)
+	}
+}
+
+func setFieldValue(field reflect.Value, value interface{}) {
+	fieldValue := reflect.ValueOf(value)
+
+	// Handle json.Number
+	if num, ok := value.(json.Number); ok {
+		switch field.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			if n, err := num.Int64(); err == nil {
+				field.SetInt(n)
+				return
+			}
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			if n, err := num.Int64(); err == nil {
+				field.SetUint(uint64(n))
+				return
+			}
+		case reflect.Float32, reflect.Float64:
+			if f, err := num.Float64(); err == nil {
+				field.SetFloat(f)
+				return
+			}
+		}
+	}
+
+	// Handle float64 to int conversion (common in JSON)
+	if f, ok := value.(float64); ok {
+		switch field.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			field.SetInt(int64(f))
+			return
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			field.SetUint(uint64(f))
+			return
+		}
+	}
+
+	// Handle time.Time
+	if field.Type() == reflect.TypeOf(time.Time{}) {
+		switch v := value.(type) {
+		case string:
+			if t, err := time.Parse("2006-01-02 15:04:05", v); err == nil {
+				field.Set(reflect.ValueOf(t))
+				return
+			}
+			if t, err := time.Parse(time.RFC3339, v); err == nil {
+				field.Set(reflect.ValueOf(t))
+				return
+			}
+		case time.Time:
+			field.Set(reflect.ValueOf(v))
+			return
+		}
+	}
+
+	// Direct conversion
+	if fieldValue.Type().ConvertibleTo(field.Type()) {
+		field.Set(fieldValue.Convert(field.Type()))
+	}
+}
+
+func getColumnNameFromField(field reflect.StructField) string {
+	// Check gorm tag first
+	gormTag := field.Tag.Get("gorm")
+	if gormTag != "" {
+		if gormTag == "-" {
+			return "-"
+		}
+		if idx := strings.Index(gormTag, "column:"); idx >= 0 {
+			name := gormTag[idx+7:]
+			if end := strings.Index(name, ";"); end >= 0 {
+				name = name[:end]
+			}
+			return name
+		}
+	}
+
+	// Check json tag
+	jsonTag := field.Tag.Get("json")
+	if jsonTag != "" && jsonTag != "-" {
+		if idx := strings.Index(jsonTag, ","); idx >= 0 {
+			return jsonTag[:idx]
+		}
+		return jsonTag
+	}
+
+	// Default to snake_case
+	return toSnakeCaseHelper(field.Name)
+}
+
+func toSnakeCaseHelper(s string) string {
+	var result strings.Builder
+	for i, r := range s {
+		if i > 0 && r >= 'A' && r <= 'Z' {
+			result.WriteByte('_')
+		}
+		result.WriteRune(r)
+	}
+	return strings.ToLower(result.String())
+}

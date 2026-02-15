@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"reflect"
 	"sync"
+	"time"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/pikselisbusiness/go-plugin"
@@ -29,6 +30,51 @@ func init() {
 	gob.Register(&url.Values{})
 	gob.Register(map[string]any{})
 	gob.Register(map[string]interface{}{})
+
+	// QueryBuilder RPC types
+	gob.Register(QueryRequest{})
+	gob.Register(QueryResponse{})
+	gob.Register(ExecRequest{})
+	gob.Register(WhereCondRPC{})
+	gob.Register(OrderClauseRPC{})
+	gob.Register(JoinClauseRPC{})
+	gob.Register([]WhereCondRPC{})
+	gob.Register([]OrderClauseRPC{})
+	gob.Register([]JoinClauseRPC{})
+	gob.Register([]interface{}{})
+	gob.Register([]map[string]interface{}{})
+
+	// Register primitive types for interface{} fields in gob
+	// These are needed for Args []interface{} and map[string]interface{} values
+	gob.Register(int(0))
+	gob.Register(int8(0))
+	gob.Register(int16(0))
+	gob.Register(int32(0))
+	gob.Register(int64(0))
+	gob.Register(uint(0))
+	gob.Register(uint8(0))
+	gob.Register(uint16(0))
+	gob.Register(uint32(0))
+	gob.Register(uint64(0))
+	gob.Register(float32(0))
+	gob.Register(float64(0))
+	gob.Register("")
+	gob.Register(true)
+	gob.Register([]byte{})
+	gob.Register(time.Time{})
+	gob.Register([]string{})
+	gob.Register([]int{})
+	gob.Register([]int64{})
+	gob.Register([]uint{})
+	gob.Register([]float64{})
+
+	// SQL nullable types
+	gob.Register(sql.NullString{})
+	gob.Register(sql.NullInt64{})
+	gob.Register(sql.NullInt32{})
+	gob.Register(sql.NullFloat64{})
+	gob.Register(sql.NullBool{})
+	gob.Register(sql.NullTime{})
 }
 
 func (p *CommonPlugin) Server(broker *plugin.MuxBroker) (interface{}, error) {
@@ -110,7 +156,7 @@ type HandlEventRequest struct {
 }
 type HandlEventResponse struct {
 	Result HandleResult
-	Error error
+	Error  error
 }
 
 type EmptyRequest struct{}
@@ -317,6 +363,14 @@ func (m *CommonServerRPC) OnActivate(args OnActivateRequest, resp *OnActivateRes
 	}); ok {
 		psplugin.SetAPI(m.apiRPCClient)
 		psplugin.SetDB(m.dbRPCClient)
+	}
+
+	// Set up DBv2 if plugin supports it
+	if pspluginV2, ok := m.Impl.(interface {
+		SetDBv2(db DBv2)
+	}); ok {
+		dbv2Client := NewDBv2RPCClient(m.dbRPCClient.client, m.broker, m.dbRPCClient)
+		pspluginV2.SetDBv2(dbv2Client)
 	}
 
 	if common, ok := m.Impl.(interface {

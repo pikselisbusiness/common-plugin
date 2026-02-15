@@ -119,3 +119,15 @@ func (m *dbRPCClient) Raw(sql string, values ...interface{}) ([]map[string]inter
 
 	return reply.Items, reply.Error
 }
+
+// QueryFind handles SELECT queries from QueryBuilder
+func (m *dbRPCServer) QueryFind(req QueryRequest, resp *QueryResponse) error {
+	server := NewQueryBuilderRPCServer(m.impl, m.broker)
+	return server.QueryFind(req, resp)
+}
+
+// QueryExec handles INSERT/UPDATE/DELETE from QueryBuilder
+func (m *dbRPCServer) QueryExec(req ExecRequest, resp *QueryResponse) error {
+	server := NewQueryBuilderRPCServer(m.impl, m.broker)
+	return server.QueryExec(req, resp)
+}

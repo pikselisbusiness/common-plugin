@@ -1,8 +1,10 @@
 package shared
 
 import (
+	"database/sql"
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -13,6 +15,7 @@ type MigrateField struct {
 }
 type TableNameFunc func() string
 
+// GetMigrateQueries extracts migration fields from a struct model
 func GetMigrateQueries(model interface{}) ([]MigrateField, error) {
 
 	tagKey := "gorm"
@@ -31,18 +34,89 @@ func GetMigrateQueries(model interface{}) ([]MigrateField, error) {
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 
+		// Skip unexported fields
+		if !field.IsExported() {
+			continue
+		}
+
 		// Get the value of the specified tag key for the field
 		tagValue, _ := field.Tag.Lookup(tagKey)
 
+		// Skip fields marked with gorm:"-"
+		if tagValue == "-" {
+			continue
+		}
+
+		fieldType := getFieldTypeName(field.Type)
+
 		migrateFields = append(migrateFields, MigrateField{
 			FieldName: field.Name,
-			FieldType: field.Type.Name(),
+			FieldType: fieldType,
 			GormTag:   tagValue,
 		})
 
 	}
 
 	return migrateFields, nil
+}
+
+// getFieldTypeName returns a string representation of the field type
+func getFieldTypeName(t reflect.Type) string {
+	switch t.Kind() {
+	case reflect.Ptr:
+		return "*" + getFieldTypeName(t.Elem())
+	case reflect.Slice:
+		return "[]" + getFieldTypeName(t.Elem())
+	default:
+		if t.PkgPath() != "" {
+			return t.PkgPath() + "." + t.Name()
+		}
+		return t.Name()
+	}
+}
+
+// AutoMigrate is a convenience function that extracts fields and calls MigrateModel
+// Usage: shared.AutoMigrate(db, &MyModel{})
+func AutoMigrate(db DB, models ...interface{}) error {
+	for _, model := range models {
+		tableName := GetTableNameFromModel(model)
+		fields, err := GetMigrateQueries(model)
+		if err != nil {
+			return fmt.Errorf("failed to get migrate queries for %s: %w", tableName, err)
+		}
+		if err := db.MigrateModel(tableName, fields); err != nil {
+			return fmt.Errorf("failed to migrate %s: %w", tableName, err)
+		}
+	}
+	return nil
+}
+
+// GetTableNameFromModel extracts table name from model
+// Checks for TableName() method first, then converts struct name to snake_case
+func GetTableNameFromModel(model interface{}) string {
+	// Check if model implements TableName() method
+	if tabler, ok := model.(interface{ TableName() string }); ok {
+		return tabler.TableName()
+	}
+
+	// Get type name and convert to snake_case + pluralize
+	t := reflect.TypeOf(model)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	return toSnakeCasePlural(t.Name())
+}
+
+// toSnakeCasePlural converts CamelCase to snake_case and adds 's'
+func toSnakeCasePlural(s string) string {
+	var result strings.Builder
+	for i, r := range s {
+		if i > 0 && r >= 'A' && r <= 'Z' {
+			result.WriteByte('_')
+		}
+		result.WriteRune(r)
+	}
+	return strings.ToLower(result.String()) + "s"
 }
 
 // CreateStructFromFields dynamically creates a new struct based on the provided MigrateField properties.
@@ -95,12 +169,48 @@ func mapFieldType(fieldType string) reflect.Type {
 	switch fieldType {
 	case "string":
 		return reflect.TypeOf("")
+	case "Time":
+		return reflect.TypeOf(time.Time{})
 	case "time.Time":
 		return reflect.TypeOf(time.Time{})
 	case "int":
 		return reflect.TypeOf(0)
+	case "int8":
+		return reflect.TypeOf(int8(0))
+	case "int16":
+		return reflect.TypeOf(int16(0))
+	case "int32":
+		return reflect.TypeOf(int32(0))
+	case "int64":
+		return reflect.TypeOf(int64(0))
+	case "uint":
+		return reflect.TypeOf(uint(0))
+	case "uint8":
+		return reflect.TypeOf(uint8(0))
+	case "uint16":
+		return reflect.TypeOf(uint16(0))
+	case "uint32":
+		return reflect.TypeOf(uint32(0))
+	case "uint64":
+		return reflect.TypeOf(uint64(0))
+	case "float32":
+		return reflect.TypeOf(float32(0))
 	case "float64":
 		return reflect.TypeOf(0.0)
+	case "bool":
+		return reflect.TypeOf(false)
+	case "NullTime":
+		return reflect.TypeOf(sql.NullTime{})
+	case "database/sql.NullTime":
+		return reflect.TypeOf(sql.NullTime{})
+	case "NullString":
+		return reflect.TypeOf(sql.NullString{})
+	case "NullInt64":
+		return reflect.TypeOf(sql.NullInt64{})
+	case "NullFloat64":
+		return reflect.TypeOf(sql.NullFloat64{})
+	case "NullBool":
+		return reflect.TypeOf(sql.NullBool{})
 	// Add more types as needed
 	default:
 		// Default to string type if the field type is not recognized

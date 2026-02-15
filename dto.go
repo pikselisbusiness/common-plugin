@@ -539,29 +539,30 @@ type OrderLine struct {
 	Title          string `json:"title"`
 	Description    string `json:"description"`
 
-	ProductId       uint    `json:"productId"`
-	ProductName     string  `json:"productName"`
-	ProductInfo     Product `json:"productInfo"`
-	Quantity        float64 `json:"quantity"`
-	OriginalPrice   float64 `json:"originalPrice"`
-	CostPrice       float64 `json:"costPrice"`
-	DealerPrice     float64 `json:"dealerPrice"`
-	BuyerPrice      float64 `json:"price"`
-	PriceWithVat    float64 `json:"priceWithVat"`
-	Sum             float64 `json:"sum"`
-	SumWithVat      float64 `json:"sumWithVat"`
-	DiscountAmount  float64 `json:"discountAmount"`
-	DiscountPercent float64 `json:"discountPercent"`
-	DiscountSum     float64 `json:"discountSum"`
-	Articule        string  `json:"articule"`
-	CostCurrency    string  `json:"costCurrency"`
-	DealerCurrency  string  `json:"dealerCurrency"`
-	BuyerCurrency   string  `json:"currency"`
-	MeasurementUnit string  `json:"measurementUnit"`
-	VatPercentage   float64 `json:"vatPercentage"`
-	VatClass        string  `json:"vatClass"`
-	Package         string  `json:"package"`
-	IsTransport     bool    `json:"isTransport"`
+	ProductId       uint                      `json:"productId"`
+	ProductName     string                    `json:"productName"`
+	ProductInfo     Product                   `json:"productInfo"`
+	Quantity        float64                   `json:"quantity"`
+	OriginalPrice   float64                   `json:"originalPrice"`
+	CostPrice       float64                   `json:"costPrice"`
+	DealerPrice     float64                   `json:"dealerPrice"`
+	BuyerPrice      float64                   `json:"price"`
+	PriceWithVat    float64                   `json:"priceWithVat"`
+	Sum             float64                   `json:"sum"`
+	SumWithVat      float64                   `json:"sumWithVat"`
+	DiscountAmount  float64                   `json:"discountAmount"`
+	DiscountPercent float64                   `json:"discountPercent"`
+	DiscountSum     float64                   `json:"discountSum"`
+	Articule        string                    `json:"articule"`
+	CostCurrency    string                    `json:"costCurrency"`
+	DealerCurrency  string                    `json:"dealerCurrency"`
+	BuyerCurrency   string                    `json:"currency"`
+	MeasurementUnit string                    `json:"measurementUnit"`
+	VatPercentage   float64                   `json:"vatPercentage"`
+	VatClass        string                    `json:"vatClass"`
+	Package         string                    `json:"package"`
+	IsTransport     bool                      `json:"isTransport"`
+	Charges         []LineChargeCreateRequest `json:"charges,omitempty"`
 }
 type OrderStatus struct {
 	StatusId              int32  `json:"statusId"`
@@ -601,13 +602,14 @@ type OrderCompanyAddressInfo struct {
 	SendContract bool   `json:"sendContract"`
 	SendInvoice  bool   `json:"sendInvoice"`
 	SendEmail    bool   `json:"sendEmail"`
-	// Possible types - contact, invoiceaddress, deliveryaddress, followupaddress, otheraddress
-	ContactType string `json:"contactType"`
-	Street      string `json:"street"`
-	State       string `json:"state"`
-	City        string `json:"city"`
-	Country     string `json:"country"`
-	PostCode    string `json:"postCode"`
+	ContactType  string `json:"contactType"`
+	Address      string `json:"address"`
+	AddressLine2 string `json:"addressLine2"`
+	State        string `json:"state"`
+	Region       string `json:"region"`
+	City         string `json:"city"`
+	Country      string `json:"country"`
+	PostCode     string `json:"postCode"`
 }
 type OrderInvoiceInfo struct {
 	InvoiceIsFormed bool      `json:"invoiceIsFormed"`
@@ -683,41 +685,42 @@ type ItemFilter struct {
 	Field    string `json:"field" query:"field"`
 }
 type OrderCreateRequest struct {
-	OrderId                int32                `json:"orderId"`
-	Date                   time.Time            `json:"date"`
-	ExpiryDate             time.Time            `json:"expiryDate"`
-	CompanyId              int32                `json:"companyId"`
-	IsOrder                bool                 `json:"isOrder"`
-	IsProforma             bool                 `json:"isProforma"`
-	Type                   string               `json:"type"`
-	Comments               string               `json:"comments"`
-	CurrencyId             int32                `json:"currencyId"`
-	Currency               string               `json:"currency"`
-	Period                 int32                `json:"period"`
-	StatusLetter           string               `json:"statusLetter"`
-	Title                  string               `json:"title"`
-	ExternalUserId         uint                 `json:"externalUserId"`
-	Email                  string               `json:"email"`
-	ShippingAddress        OrderShippingAddress `json:"shippingAddress"`
-	PickupLocation         OrderPickupLocation  `json:"pickupLocation"`
-	PaymentId              uint                 `json:"paymentId"`
-	PaymentType            string               `json:"paymentType"`
-	PaymentIsCod           bool                 `json:"paymentIsCod"`
-	PaymentInnerType       string               `json:"paymentInnerType"`
-	ShippingId             uint                 `json:"shippingId"`
-	ShippingMethodSelector string               `json:"shippingMethodSelector"`
-	ShippingMethodName     string               `json:"shippingMethodName"`
-	TrackingNumber         string               `json:"trackingNumber"`
-	TrackingType           string               `json:"trackingType"`
-	ReportType             string               `json:"reportType"` // PDF type
-	PdfBlankId             int32                `json:"pdfBlankId"`
-	Products               []OrderLine          `json:"products"`
-	Token                  string               `json:"token"`
-	PaymentReferenceNo     string               `json:"paymentReferenceNo"`
-	CustomFields           json.RawMessage      `json:"customFields"`
-	StatusId               uint                 `json:"statusId"`
-	ChannelID              uint                 `json:"channelId"`
-	ExternalOrderID        string               `json:"externalOrderId"`
+	OrderId                int32                         `json:"orderId"`
+	Date                   time.Time                     `json:"date"`
+	ExpiryDate             time.Time                     `json:"expiryDate"`
+	CompanyId              int32                         `json:"companyId"`
+	IsOrder                bool                          `json:"isOrder"`
+	IsProforma             bool                          `json:"isProforma"`
+	Type                   string                        `json:"type"`
+	Comments               string                        `json:"comments"`
+	CurrencyId             int32                         `json:"currencyId"`
+	Currency               string                        `json:"currency"`
+	Period                 int32                         `json:"period"`
+	StatusLetter           string                        `json:"statusLetter"`
+	Title                  string                        `json:"title"`
+	ExternalUserId         uint                          `json:"externalUserId"`
+	Email                  string                        `json:"email"`
+	ShippingAddress        OrderShippingAddress          `json:"shippingAddress"`
+	PickupLocation         OrderPickupLocation           `json:"pickupLocation"`
+	PaymentId              uint                          `json:"paymentId"`
+	PaymentType            string                        `json:"paymentType"`
+	PaymentIsCod           bool                          `json:"paymentIsCod"`
+	PaymentInnerType       string                        `json:"paymentInnerType"`
+	ShippingId             uint                          `json:"shippingId"`
+	ShippingMethodSelector string                        `json:"shippingMethodSelector"`
+	ShippingMethodName     string                        `json:"shippingMethodName"`
+	TrackingNumber         string                        `json:"trackingNumber"`
+	TrackingType           string                        `json:"trackingType"`
+	ReportType             string                        `json:"reportType"` // PDF type
+	PdfBlankId             int32                         `json:"pdfBlankId"`
+	Products               []OrderLine                   `json:"products"`
+	Token                  string                        `json:"token"`
+	PaymentReferenceNo     string                        `json:"paymentReferenceNo"`
+	CustomFields           json.RawMessage               `json:"customFields"`
+	StatusId               uint                          `json:"statusId"`
+	ChannelID              uint                          `json:"channelId"`
+	ExternalOrderID        string                        `json:"externalOrderId"`
+	DocumentCharges        []DocumentChargeCreateRequest `json:"documentCharges,omitempty"`
 }
 type OrdersRequest struct {
 	PerPage                      int       `json:"perPage"`
