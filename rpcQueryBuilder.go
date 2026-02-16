@@ -260,6 +260,12 @@ func (q *QueryBuilderRPCClient) Create(value interface{}) QueryResult {
 	if resp.Error != "" {
 		return QueryResult{Error: fmt.Errorf(resp.Error)}
 	}
+
+	// Update the ID field on the original struct (like GORM does)
+	if resp.LastInsertID > 0 {
+		setStructID(value, resp.LastInsertID)
+	}
+
 	return QueryResult{RowsAffected: resp.RowsAffected, LastInsertID: resp.LastInsertID}
 }
 

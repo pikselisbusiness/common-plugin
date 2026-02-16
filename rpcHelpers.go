@@ -7,6 +7,49 @@ import (
 	"time"
 )
 
+// setStructID sets the ID field on a struct pointer after insert
+// Supports ID, Id field names and uint, uint64, int, int64 types
+func setStructID(value interface{}, id int64) {
+	v := reflect.ValueOf(value)
+	if v.Kind() != reflect.Ptr {
+		return
+	}
+	v = v.Elem()
+	if v.Kind() != reflect.Struct {
+		return
+	}
+
+	// Try common ID field names
+	idField := v.FieldByName("ID")
+	if !idField.IsValid() {
+		idField = v.FieldByName("Id")
+	}
+	if !idField.IsValid() {
+		// Try to find field with gorm:"primaryKey" tag
+		t := v.Type()
+		for i := 0; i < t.NumField(); i++ {
+			field := t.Field(i)
+			gormTag := field.Tag.Get("gorm")
+			if strings.Contains(gormTag, "primaryKey") || strings.Contains(gormTag, "primary_key") {
+				idField = v.Field(i)
+				break
+			}
+		}
+	}
+
+	if !idField.IsValid() || !idField.CanSet() {
+		return
+	}
+
+	// Set the value based on field type
+	switch idField.Kind() {
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		idField.SetUint(uint64(id))
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		idField.SetInt(id)
+	}
+}
+
 // structToMap converts a struct to map[string]interface{}
 func structToMap(value interface{}) map[string]interface{} {
 	result := make(map[string]interface{})

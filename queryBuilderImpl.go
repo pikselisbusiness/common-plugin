@@ -401,6 +401,9 @@ func (q *QueryBuilderImpl) Create(value interface{}) QueryResult {
 	}
 
 	rowsAffected, lastInsertID, err := q.db.ExecWithResult(sql, args...)
+	if err == nil && lastInsertID > 0 {
+		setStructID(value, lastInsertID)
+	}
 	return QueryResult{Error: err, RowsAffected: rowsAffected, LastInsertID: lastInsertID}
 }
 
