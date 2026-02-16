@@ -35,6 +35,12 @@ type DbStatementResponse struct {
 	Error error
 }
 
+type DbExecResultResponse struct {
+	RowsAffected int64
+	LastInsertID int64
+	Error        error
+}
+
 type DbRawResponse struct {
 	Items []map[string]interface{}
 	Error error
@@ -92,6 +98,38 @@ func (m *dbRPCClient) Exec(sql string, values ...interface{}) error {
 	}
 
 	return reply.Error
+}
+
+func (m *dbRPCServer) ExecWithResult(req DbStatementRequest, resp *DbExecResultResponse) error {
+	rowsAffected, lastInsertID, err := m.impl.ExecWithResult(req.Sql, req.Values...)
+
+	fmt.Println("CALL ExecWithResult", req.Sql, req.Values)
+	if err != nil {
+		fmt.Println("Error calling Plugin.ExecWithResult", "error", err)
+	}
+	resp.RowsAffected = rowsAffected
+	resp.LastInsertID = lastInsertID
+	resp.Error = encodableError(err)
+
+	return nil
+}
+
+func (m *dbRPCClient) ExecWithResult(sql string, values ...interface{}) (int64, int64, error) {
+
+	var reply DbExecResultResponse
+	err := m.client.Call("Plugin.ExecWithResult", DbStatementRequest{
+		Sql:    sql,
+		Values: values,
+	}, &reply)
+
+	fmt.Println("CALL ExecWithResult", sql, values)
+
+	if err != nil {
+		fmt.Println("Error calling Plugin.ExecWithResult", "error", err)
+		return 0, 0, err
+	}
+
+	return reply.RowsAffected, reply.LastInsertID, reply.Error
 }
 
 func (m *dbRPCServer) Raw(req DbStatementRequest, resp *DbRawResponse) error {

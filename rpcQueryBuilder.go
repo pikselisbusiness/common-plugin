@@ -52,10 +52,11 @@ type QueryResponse struct {
 }
 
 type ExecRequest struct {
-	TableName  string
-	Operation  string // "create", "update", "delete"
-	Data       map[string]interface{}
-	WhereConds []WhereCondRPC
+	TableName     string
+	Operation     string // "create", "update", "delete", "upsert"
+	Data          map[string]interface{}
+	WhereConds    []WhereCondRPC
+	UpdateColumns []string // for upsert: columns to update on conflict
 }
 
 // QueryBuilderRPCClient implements QueryBuilder over RPC (plugin side)
@@ -322,6 +323,46 @@ func (q *QueryBuilderRPCClient) Delete(value interface{}, conds ...interface{}) 
 	return QueryResult{RowsAffected: resp.RowsAffected}
 }
 
+// FirstOrCreate finds first record matching conditions, or creates a new one
+func (q *QueryBuilderRPCClient) FirstOrCreate(dest interface{}, conds ...interface{}) QueryResult {
+	// Add conditions if provided
+	if len(conds) > 0 {
+		if query, ok := conds[0].(string); ok {
+			q.Where(query, conds[1:]...)
+		}
+	}
+
+	// Try to find first
+	result := q.First(dest)
+	if result.RowsAffected > 0 {
+		return result
+	}
+
+	// Not found, create new
+	createBuilder := NewQueryBuilderRPCClient(q.client, q.broker, q.tableName)
+	return createBuilder.Create(dest)
+}
+
+// Upsert inserts or updates on duplicate key (MySQL specific)
+func (q *QueryBuilderRPCClient) Upsert(value interface{}, updateColumns ...string) QueryResult {
+	data := structToMap(value)
+	req := ExecRequest{
+		TableName:     q.tableName,
+		Operation:     "upsert",
+		Data:          data,
+		UpdateColumns: updateColumns,
+	}
+	var resp QueryResponse
+	err := q.client.Call("Plugin.QueryExec", req, &resp)
+	if err != nil {
+		return QueryResult{Error: err}
+	}
+	if resp.Error != "" {
+		return QueryResult{Error: fmt.Errorf(resp.Error)}
+	}
+	return QueryResult{RowsAffected: resp.RowsAffected, LastInsertID: resp.LastInsertID}
+}
+
 // QueryBuilderRPCServer handles RPC calls on the host side
 type QueryBuilderRPCServer struct {
 	db     DB
@@ -355,15 +396,19 @@ func (s *QueryBuilderRPCServer) QueryExec(req ExecRequest, resp *QueryResponse) 
 		sql, args = s.buildUpdateSQL(req)
 	case "delete":
 		sql, args = s.buildDeleteSQL(req)
+	case "upsert":
+		sql, args = s.buildUpsertSQL(req)
 	default:
 		resp.Error = "unknown operation: " + req.Operation
 		return nil
 	}
 
-	err := s.db.Exec(sql, args...)
+	rowsAffected, lastInsertID, err := s.db.ExecWithResult(sql, args...)
 	if err != nil {
 		resp.Error = err.Error()
 	}
+	resp.RowsAffected = rowsAffected
+	resp.LastInsertID = lastInsertID
 	return nil
 }
 
@@ -513,6 +558,45 @@ func (s *QueryBuilderRPCServer) buildDeleteSQL(req ExecRequest) (string, []inter
 		join(whereParts, " AND "))
 
 	return sql, whereArgs
+}
+
+func (s *QueryBuilderRPCServer) buildUpsertSQL(req ExecRequest) (string, []interface{}) {
+	var columns []string
+	var placeholders []string
+	var args []interface{}
+
+	for col, val := range req.Data {
+		if col == "id" && (val == nil || val == 0 || val == float64(0)) {
+			continue
+		}
+		columns = append(columns, col)
+		placeholders = append(placeholders, "?")
+		args = append(args, val)
+	}
+
+	// Build ON DUPLICATE KEY UPDATE clause
+	var updateParts []string
+	if len(req.UpdateColumns) > 0 {
+		// Update only specified columns
+		for _, col := range req.UpdateColumns {
+			updateParts = append(updateParts, fmt.Sprintf("%s = VALUES(%s)", col, col))
+		}
+	} else {
+		// Update all columns except id
+		for _, col := range columns {
+			if col != "id" {
+				updateParts = append(updateParts, fmt.Sprintf("%s = VALUES(%s)", col, col))
+			}
+		}
+	}
+
+	sql := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s",
+		req.TableName,
+		join(columns, ", "),
+		join(placeholders, ", "),
+		join(updateParts, ", "))
+
+	return sql, args
 }
 
 // Helper functions

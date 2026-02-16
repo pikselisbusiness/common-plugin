@@ -30,6 +30,14 @@ func (d *DBv2Impl) Raw(sql string, values ...interface{}) ([]map[string]interfac
 	return d.db.Raw(sql, values...)
 }
 
+func (d *DBv2Impl) RawScan(dest interface{}, sql string, values ...interface{}) error {
+	rows, err := d.db.Raw(sql, values...)
+	if err != nil {
+		return err
+	}
+	return scanRowsInto(rows, dest)
+}
+
 func (d *DBv2Impl) Begin() (DBv2, error) {
 	// For now, transactions are not supported over RPC
 	// Return self - operations will be non-transactional
@@ -89,6 +97,14 @@ func (d *DBv2RPCClient) Exec(sql string, values ...interface{}) error {
 
 func (d *DBv2RPCClient) Raw(sql string, values ...interface{}) ([]map[string]interface{}, error) {
 	return d.db.Raw(sql, values...)
+}
+
+func (d *DBv2RPCClient) RawScan(dest interface{}, sql string, values ...interface{}) error {
+	rows, err := d.db.Raw(sql, values...)
+	if err != nil {
+		return err
+	}
+	return scanRowsInto(rows, dest)
 }
 
 func (d *DBv2RPCClient) Begin() (DBv2, error) {

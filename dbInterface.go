@@ -8,7 +8,10 @@ type DBv2 interface {
 	Exec(sql string, values ...interface{}) error
 	Raw(sql string, values ...interface{}) ([]map[string]interface{}, error)
 
-	// Transaction support
+	// RawScan executes raw SQL and scans results into dest struct/slice
+	RawScan(dest interface{}, sql string, values ...interface{}) error
+
+	// Transaction support (limited - see docs)
 	Begin() (DBv2, error)
 	Commit() error
 	Rollback() error
@@ -62,6 +65,12 @@ type QueryBuilder interface {
 	Update(column string, value interface{}) QueryResult
 	Updates(values interface{}) QueryResult
 	Delete(value interface{}, conds ...interface{}) QueryResult
+
+	// Upsert operations
+	FirstOrCreate(dest interface{}, conds ...interface{}) QueryResult
+	// Upsert with ON DUPLICATE KEY UPDATE (MySQL specific)
+	// updateColumns: columns to update on conflict, empty = update all
+	Upsert(value interface{}, updateColumns ...string) QueryResult
 
 	// Raw SQL within chain
 	Raw(sql string, values ...interface{}) QueryBuilder

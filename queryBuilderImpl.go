@@ -400,8 +400,8 @@ func (q *QueryBuilderImpl) Create(value interface{}) QueryResult {
 		q.logger.Info("SQL", "query", sql, "args", args)
 	}
 
-	err := q.db.Exec(sql, args...)
-	return QueryResult{Error: err}
+	rowsAffected, lastInsertID, err := q.db.ExecWithResult(sql, args...)
+	return QueryResult{Error: err, RowsAffected: rowsAffected, LastInsertID: lastInsertID}
 }
 
 // Save updates or creates a record
@@ -515,6 +515,75 @@ func (q *QueryBuilderImpl) Delete(value interface{}, conds ...interface{}) Query
 
 	err := q.db.Exec(sql, whereArgs...)
 	return QueryResult{Error: err}
+}
+
+// FirstOrCreate finds first record matching conditions, or creates a new one
+func (q *QueryBuilderImpl) FirstOrCreate(dest interface{}, conds ...interface{}) QueryResult {
+	// Add conditions if provided
+	if len(conds) > 0 {
+		if query, ok := conds[0].(string); ok {
+			q.Where(query, conds[1:]...)
+		}
+	}
+
+	// Try to find first
+	result := q.First(dest)
+	if result.RowsAffected > 0 {
+		return result
+	}
+
+	// Not found, create new
+	// Reset query builder for insert
+	createBuilder := &QueryBuilderImpl{
+		db:        q.db,
+		logger:    q.logger,
+		tableName: q.tableName,
+		debug:     q.debug,
+	}
+	return createBuilder.Create(dest)
+}
+
+// Upsert inserts or updates on duplicate key (MySQL specific)
+// updateColumns specifies which columns to update on conflict; empty = update all non-key columns
+func (q *QueryBuilderImpl) Upsert(value interface{}, updateColumns ...string) QueryResult {
+	columns, _, args := q.extractInsertData(value)
+	if len(columns) == 0 {
+		return QueryResult{Error: fmt.Errorf("no columns to insert")}
+	}
+
+	placeholders := make([]string, len(columns))
+	for i := range columns {
+		placeholders[i] = "?"
+	}
+
+	// Build ON DUPLICATE KEY UPDATE clause
+	var updateParts []string
+	if len(updateColumns) > 0 {
+		// Update only specified columns
+		for _, col := range updateColumns {
+			updateParts = append(updateParts, fmt.Sprintf("%s = VALUES(%s)", col, col))
+		}
+	} else {
+		// Update all columns except id
+		for _, col := range columns {
+			if col != "id" {
+				updateParts = append(updateParts, fmt.Sprintf("%s = VALUES(%s)", col, col))
+			}
+		}
+	}
+
+	sql := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s",
+		q.tableName,
+		strings.Join(columns, ", "),
+		strings.Join(placeholders, ", "),
+		strings.Join(updateParts, ", "))
+
+	if q.debug && q.logger != nil {
+		q.logger.Info("SQL", "query", sql, "args", args)
+	}
+
+	rowsAffected, lastInsertID, err := q.db.ExecWithResult(sql, args...)
+	return QueryResult{Error: err, RowsAffected: rowsAffected, LastInsertID: lastInsertID}
 }
 
 // Helper: scan rows into destination
