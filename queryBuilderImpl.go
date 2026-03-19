@@ -797,10 +797,17 @@ func (q *QueryBuilderImpl) getColumnName(field reflect.StructField) string {
 }
 
 func toSnakeCase(s string) string {
+	runes := []rune(s)
 	var result strings.Builder
-	for i, r := range s {
+	for i, r := range runes {
 		if i > 0 && r >= 'A' && r <= 'Z' {
-			result.WriteByte('_')
+			// Don't insert underscore if previous char was also uppercase and next is lowercase
+			// e.g. "ID" -> "id", "XMLParser" -> "xml_parser", "UserID" -> "user_id"
+			prevUpper := runes[i-1] >= 'A' && runes[i-1] <= 'Z'
+			nextLower := i+1 < len(runes) && runes[i+1] >= 'a' && runes[i+1] <= 'z'
+			if !prevUpper || nextLower {
+				result.WriteByte('_')
+			}
 		}
 		result.WriteRune(r)
 	}
