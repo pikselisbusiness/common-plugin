@@ -16,6 +16,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/pikselisbusiness/go-plugin"
+	"gorm.io/datatypes"
 )
 
 func init() {
@@ -75,6 +76,8 @@ func init() {
 	gob.Register(sql.NullFloat64{})
 	gob.Register(sql.NullBool{})
 	gob.Register(sql.NullTime{})
+
+	gob.Register(datatypes.JSON{})
 }
 
 func (p *CommonPlugin) Server(broker *plugin.MuxBroker) (interface{}, error) {
