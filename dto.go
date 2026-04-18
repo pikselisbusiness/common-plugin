@@ -1049,6 +1049,7 @@ type CustomField struct {
 	Active          bool            `json:"active"`
 	ShowInList      bool            `json:"showInList"`
 	ShowOnlyAdmin   bool            `json:"showOnlyAdmin"`
+	ShowInEcommerce bool            `json:"showInEcommerce"`
 	IsIndexedField  bool            `json:"isIndexedField"`
 	CreatedAt       time.Time       `json:"createdAt"`
 	CreatedUserInfo UserInfo        `json:"createdUserInfo"`
