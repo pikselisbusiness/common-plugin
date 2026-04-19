@@ -421,6 +421,25 @@ type SendEmailResponse struct {
 	Error error
 }
 
+// UploadFile
+type UploadFileRequest struct {
+	Context RequestContext
+	Request FileUploadRequest
+}
+type UploadFileResponse struct {
+	Response FileUploadResponse
+	Error    error
+}
+
+// DeleteFile
+type DeleteFileRequest struct {
+	Context  RequestContext
+	UploadId uint
+}
+type DeleteFileResponse struct {
+	Error error
+}
+
 // PatchUpdateOrder
 type PatchUpdateOrderRequest struct {
 	Context RequestContext
@@ -1310,6 +1329,49 @@ func (m *apiRPCClient) PatchUpdateOrder(context RequestContext, orderId uint, re
 		Context: context,
 		OrderId: orderId,
 		Request: request,
+	}, &reply)
+	if err != nil {
+		return err
+	}
+
+	return reply.Error
+}
+
+func (m *apiRPCServer) UploadFile(req UploadFileRequest, resp *UploadFileResponse) error {
+	response, err := m.impl.UploadFile(req.Context, req.Request)
+
+	resp.Response = response
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) UploadFile(context RequestContext, request FileUploadRequest) (FileUploadResponse, error) {
+
+	var reply UploadFileResponse
+	err := m.client.Call("Plugin.UploadFile", UploadFileRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return FileUploadResponse{}, err
+	}
+
+	return reply.Response, reply.Error
+}
+
+func (m *apiRPCServer) DeleteFile(req DeleteFileRequest, resp *DeleteFileResponse) error {
+	err := m.impl.DeleteFile(req.Context, req.UploadId)
+
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) DeleteFile(context RequestContext, uploadId uint) error {
+
+	var reply DeleteFileResponse
+	err := m.client.Call("Plugin.DeleteFile", DeleteFileRequest{
+		Context:  context,
+		UploadId: uploadId,
 	}, &reply)
 	if err != nil {
 		return err

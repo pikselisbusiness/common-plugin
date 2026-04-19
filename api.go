@@ -54,6 +54,9 @@ type API interface {
 
 	SendEmail(context RequestContext, request EmailRequest) error
 
+	UploadFile(context RequestContext, request FileUploadRequest) (FileUploadResponse, error)
+	DeleteFile(context RequestContext, uploadId uint) error
+
 	// GetProductCategoriesChainByLastChildId(context RequestContext, categoryId uint) ([]ProductCategoriesShort, error)
 }
 

@@ -1067,6 +1067,24 @@ type CustomFieldsRequest struct {
 type CustomFieldsResponse struct {
 	Fields []CustomField
 }
+type FileUploadRequest struct {
+	ParentId    uint           `json:"parentId"`
+	ParentType  string         `json:"parentType"`
+	FileName    string         `json:"fileName"`
+	MimeType    string         `json:"mimeType"`
+	Content     []byte         `json:"content,omitempty"`
+	IsPublic    bool           `json:"isPublic"`
+	Options     map[string]any `json:"options,omitempty"`
+	Type        string         `json:"type,omitempty"`        // "file" (default) or "url"
+	ExternalUrl string         `json:"externalUrl,omitempty"` // required when type="url"
+}
+
+type FileUploadResponse struct {
+	UploadId    uint   `json:"uploadId"`
+	PreviewPath string `json:"previewPath"`
+	Type        string `json:"type"` // "file" or "url"
+}
+
 type EmailSender struct {
 	Host     string
 	Name     string
