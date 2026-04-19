@@ -102,8 +102,19 @@ func (q *QueryBuilderImpl) Not(query string, args ...interface{}) QueryBuilder {
 	return q
 }
 
-// Order adds ordering
+// Order adds ordering.
+// Supports both GORM-style .Order("col DESC") and explicit .Order("col", shared.DESC).
 func (q *QueryBuilderImpl) Order(column string, direction ...OrderDirection) QueryBuilder {
+	// If direction is embedded in the column string (GORM style), parse it out
+	if len(direction) == 0 {
+		upper := strings.ToUpper(strings.TrimSpace(column))
+		if strings.HasSuffix(upper, " ASC") || strings.HasSuffix(upper, " DESC") {
+			// Use the raw string as-is, no appended direction
+			q.orderClauses = append(q.orderClauses, orderClause{column: column, direction: ""})
+			return q
+		}
+	}
+
 	dir := ASC
 	if len(direction) > 0 {
 		dir = direction[0]
@@ -241,7 +252,11 @@ func (q *QueryBuilderImpl) buildSelectSQL() (string, []interface{}) {
 		sql.WriteString(" ORDER BY ")
 		orderParts := make([]string, len(q.orderClauses))
 		for i, o := range q.orderClauses {
-			orderParts[i] = fmt.Sprintf("%s %s", o.column, o.direction)
+			if o.direction == "" {
+				orderParts[i] = o.column
+			} else {
+				orderParts[i] = fmt.Sprintf("%s %s", o.column, o.direction)
+			}
 		}
 		sql.WriteString(strings.Join(orderParts, ", "))
 	}
@@ -305,15 +320,25 @@ func (q *QueryBuilderImpl) Find(dest interface{}) QueryResult {
 	return QueryResult{RowsAffected: int64(len(rows))}
 }
 
-// First retrieves the first record
+// First retrieves the first record.
+// If no Order has been set, it orders by the struct's primary key (gorm:"primaryKey" tag)
+// or falls back to "id".
 func (q *QueryBuilderImpl) First(dest interface{}) QueryResult {
-	q.Limit(1).Order("id", ASC)
+	if len(q.orderClauses) == 0 {
+		q.Order(q.detectPrimaryKey(dest), ASC)
+	}
+	q.Limit(1)
 	return q.Find(dest)
 }
 
-// Last retrieves the last record
+// Last retrieves the last record.
+// If no Order has been set, it orders by the struct's primary key (gorm:"primaryKey" tag)
+// or falls back to "id".
 func (q *QueryBuilderImpl) Last(dest interface{}) QueryResult {
-	q.Limit(1).Order("id", DESC)
+	if len(q.orderClauses) == 0 {
+		q.Order(q.detectPrimaryKey(dest), DESC)
+	}
+	q.Limit(1)
 	return q.Find(dest)
 }
 
@@ -323,10 +348,14 @@ func (q *QueryBuilderImpl) Take(dest interface{}) QueryResult {
 	return q.Find(dest)
 }
 
-// Count returns the count of records
+// Count returns the count of records without mutating the query builder,
+// so the same builder can be reused for subsequent queries.
 func (q *QueryBuilderImpl) Count(count *int64) QueryResult {
+	// Save and restore selectCols so Count doesn't mutate the builder
+	origSelect := q.selectCols
 	q.selectCols = []string{"COUNT(*) as count"}
 	sql, args := q.ToSQL()
+	q.selectCols = origSelect
 
 	rows, err := q.db.Raw(sql, args...)
 	if err != nil {
@@ -407,23 +436,68 @@ func (q *QueryBuilderImpl) Create(value interface{}) QueryResult {
 	return QueryResult{Error: err, RowsAffected: rowsAffected, LastInsertID: lastInsertID}
 }
 
-// Save updates or creates a record
+// Save updates or creates a record.
+// Detects the primary key from the gorm:"primaryKey" tag, falling back to ID/Id fields.
 func (q *QueryBuilderImpl) Save(value interface{}) QueryResult {
-	// Check if record has ID
 	v := reflect.ValueOf(value)
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
-
-	idField := v.FieldByName("ID")
-	if !idField.IsValid() {
-		idField = v.FieldByName("Id")
+	if v.Kind() != reflect.Struct {
+		return q.Create(value)
 	}
 
-	if idField.IsValid() && idField.Uint() > 0 {
-		return q.Where("id = ?", idField.Uint()).Updates(value)
+	// Find primary key field and its column name
+	pkCol, pkField := q.findPrimaryKeyField(v)
+	if pkField.IsValid() && !pkField.IsZero() {
+		return q.Where(pkCol+" = ?", pkField.Interface()).Updates(value)
 	}
 	return q.Create(value)
+}
+
+// findPrimaryKeyField returns the column name and field value of the primary key.
+// Checks gorm:"primaryKey" tag first, then falls back to ID/Id fields.
+func (q *QueryBuilderImpl) findPrimaryKeyField(v reflect.Value) (string, reflect.Value) {
+	t := v.Type()
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		gormTag := field.Tag.Get("gorm")
+		if strings.Contains(gormTag, "primaryKey") {
+			colName := q.getColumnName(field)
+			return colName, v.Field(i)
+		}
+	}
+	// Fallback to ID/Id
+	if f := v.FieldByName("ID"); f.IsValid() {
+		return "id", f
+	}
+	if f := v.FieldByName("Id"); f.IsValid() {
+		return "id", f
+	}
+	return "id", reflect.Value{}
+}
+
+// detectPrimaryKey returns the column name of the primary key from the dest struct.
+func (q *QueryBuilderImpl) detectPrimaryKey(dest interface{}) string {
+	v := reflect.ValueOf(dest)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	// For slices, inspect the element type
+	if v.Kind() == reflect.Slice {
+		elemType := v.Type().Elem()
+		if elemType.Kind() == reflect.Ptr {
+			elemType = elemType.Elem()
+		}
+		if elemType.Kind() == reflect.Struct {
+			v = reflect.New(elemType).Elem()
+		}
+	}
+	if v.Kind() == reflect.Struct {
+		col, _ := q.findPrimaryKeyField(v)
+		return col
+	}
+	return "id"
 }
 
 // Update updates a single column
