@@ -638,22 +638,29 @@ func (q *QueryBuilderImpl) Upsert(value interface{}, updateColumns ...string) Qu
 	if len(updateColumns) > 0 {
 		// Update only specified columns
 		for _, col := range updateColumns {
-			updateParts = append(updateParts, fmt.Sprintf("%s = VALUES(%s)", col, col))
+			if isPostgresDialect() {
+				updateParts = append(updateParts, fmt.Sprintf("%s = EXCLUDED.%s", quoteSQLIdentifier(col), quoteSQLIdentifier(col)))
+			} else {
+				updateParts = append(updateParts, fmt.Sprintf("%s = VALUES(%s)", col, col))
+			}
 		}
 	} else {
 		// Update all columns except id
 		for _, col := range columns {
 			if col != "id" {
-				updateParts = append(updateParts, fmt.Sprintf("%s = VALUES(%s)", col, col))
+				if isPostgresDialect() {
+					updateParts = append(updateParts, fmt.Sprintf("%s = EXCLUDED.%s", quoteSQLIdentifier(col), quoteSQLIdentifier(col)))
+				} else {
+					updateParts = append(updateParts, fmt.Sprintf("%s = VALUES(%s)", col, col))
+				}
 			}
 		}
 	}
 
-	sql := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s",
-		q.tableName,
-		strings.Join(columns, ", "),
-		strings.Join(placeholders, ", "),
-		strings.Join(updateParts, ", "))
+	sql, err := buildUpsertSQL(q.tableName, columns, placeholders, updateParts, detectConflictColumns(value, columns))
+	if err != nil {
+		return QueryResult{Error: err}
+	}
 
 	if q.debug && q.logger != nil {
 		q.logger.Info("SQL", "query", sql, "args", args)

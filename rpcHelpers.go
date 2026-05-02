@@ -2,6 +2,7 @@ package shared
 
 import (
 	"encoding/json"
+	"os"
 	"reflect"
 	"strings"
 	"time"
@@ -229,6 +230,114 @@ func getColumnNameFromField(field reflect.StructField) string {
 
 	// Default to snake_case
 	return toSnakeCaseHelper(field.Name)
+}
+
+func currentSQLDialect() string {
+	dialect := strings.ToLower(os.Getenv("DATABASE_DRIVER"))
+	if dialect == "" {
+		dialect = strings.ToLower(os.Getenv("DB_DRIVER"))
+	}
+	if dialect == "" {
+		dialect = strings.ToLower(os.Getenv("DATABASE_DIALECT"))
+	}
+	switch dialect {
+	case "postgres", "postgresql", "pg":
+		return "postgres"
+	default:
+		return "mysql"
+	}
+}
+
+func isPostgresDialect() bool {
+	return currentSQLDialect() == "postgres"
+}
+
+func quoteSQLIdentifier(identifier string) string {
+	quote := "`"
+	if isPostgresDialect() {
+		quote = `"`
+	}
+	parts := strings.Split(identifier, ".")
+	for i, part := range parts {
+		if part == "*" || part == "" {
+			continue
+		}
+		if strings.HasPrefix(part, quote) && strings.HasSuffix(part, quote) {
+			continue
+		}
+		parts[i] = quote + strings.ReplaceAll(part, quote, quote+quote) + quote
+	}
+	return strings.Join(parts, ".")
+}
+
+func detectConflictColumns(value interface{}, columns []string) []string {
+	columnSet := make(map[string]bool, len(columns))
+	for _, col := range columns {
+		columnSet[col] = true
+	}
+
+	v := reflect.ValueOf(value)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	if v.Kind() != reflect.Struct {
+		if columnSet["id"] {
+			return []string{"id"}
+		}
+		return nil
+	}
+
+	t := v.Type()
+	var uniqueColumn string
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		col := getColumnNameFromField(field)
+		if col == "-" || !columnSet[col] {
+			continue
+		}
+		gormTag := field.Tag.Get("gorm")
+		if strings.Contains(gormTag, "primaryKey") || strings.Contains(gormTag, "primary_key") {
+			fieldValue := v.Field(i)
+			if fieldValue.CanInterface() && !fieldValue.IsZero() {
+				return []string{col}
+			}
+		}
+		if uniqueColumn == "" && (strings.Contains(gormTag, "uniqueIndex") || strings.Contains(gormTag, "unique")) {
+			uniqueColumn = col
+		}
+	}
+	if uniqueColumn != "" {
+		return []string{uniqueColumn}
+	}
+	return nil
+}
+
+func buildUpsertSQL(tableName string, columns, placeholders, updateColumns, conflictColumns []string) (string, error) {
+	if !isPostgresDialect() {
+		return "INSERT INTO " + tableName + " (" + strings.Join(columns, ", ") + ") VALUES (" + strings.Join(placeholders, ", ") + ") ON DUPLICATE KEY UPDATE " + strings.Join(updateColumns, ", "), nil
+	}
+	if len(conflictColumns) == 0 {
+		return "", &UpsertConflictError{}
+	}
+
+	quotedConflictColumns := make([]string, len(conflictColumns))
+	for i, col := range conflictColumns {
+		quotedConflictColumns[i] = quoteSQLIdentifier(col)
+	}
+
+	conflictSQL := " ON CONFLICT (" + strings.Join(quotedConflictColumns, ", ") + ")"
+	if len(updateColumns) == 0 {
+		conflictSQL += " DO NOTHING"
+	} else {
+		conflictSQL += " DO UPDATE SET " + strings.Join(updateColumns, ", ")
+	}
+	return "INSERT INTO " + tableName + " (" + strings.Join(columns, ", ") + ") VALUES (" + strings.Join(placeholders, ", ") + ")" + conflictSQL, nil
+}
+
+type UpsertConflictError struct{}
+
+func (e *UpsertConflictError) Error() string {
+	return "postgres upsert requires an id value or a struct field tagged with gorm uniqueIndex/unique"
 }
 
 func toSnakeCaseHelper(s string) string {

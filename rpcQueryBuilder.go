@@ -2,6 +2,7 @@ package shared
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/rpc"
 
@@ -52,11 +53,12 @@ type QueryResponse struct {
 }
 
 type ExecRequest struct {
-	TableName     string
-	Operation     string // "create", "update", "delete", "upsert"
-	Data          map[string]interface{}
-	WhereConds    []WhereCondRPC
-	UpdateColumns []string // for upsert: columns to update on conflict
+	TableName       string
+	Operation       string // "create", "update", "delete", "upsert"
+	Data            map[string]interface{}
+	WhereConds      []WhereCondRPC
+	UpdateColumns   []string // for upsert: columns to update on conflict
+	ConflictColumns []string // for PostgreSQL upsert conflict target
 }
 
 // QueryBuilderRPCClient implements QueryBuilder over RPC (plugin side)
@@ -186,7 +188,7 @@ func (q *QueryBuilderRPCClient) Find(dest interface{}) QueryResult {
 		return QueryResult{Error: err}
 	}
 	if resp.Error != "" {
-		return QueryResult{Error: fmt.Errorf(resp.Error)}
+		return QueryResult{Error: errors.New(resp.Error)}
 	}
 
 	// Scan rows into dest using reflection
@@ -258,7 +260,7 @@ func (q *QueryBuilderRPCClient) Create(value interface{}) QueryResult {
 		return QueryResult{Error: err}
 	}
 	if resp.Error != "" {
-		return QueryResult{Error: fmt.Errorf(resp.Error)}
+		return QueryResult{Error: errors.New(resp.Error)}
 	}
 
 	// Update the ID field on the original struct (like GORM does)
@@ -295,7 +297,7 @@ func (q *QueryBuilderRPCClient) Updates(values interface{}) QueryResult {
 		return QueryResult{Error: err}
 	}
 	if resp.Error != "" {
-		return QueryResult{Error: fmt.Errorf(resp.Error)}
+		return QueryResult{Error: errors.New(resp.Error)}
 	}
 	return QueryResult{RowsAffected: resp.RowsAffected}
 }
@@ -324,7 +326,7 @@ func (q *QueryBuilderRPCClient) Delete(value interface{}, conds ...interface{}) 
 		return QueryResult{Error: err}
 	}
 	if resp.Error != "" {
-		return QueryResult{Error: fmt.Errorf(resp.Error)}
+		return QueryResult{Error: errors.New(resp.Error)}
 	}
 	return QueryResult{RowsAffected: resp.RowsAffected}
 }
@@ -353,10 +355,11 @@ func (q *QueryBuilderRPCClient) FirstOrCreate(dest interface{}, conds ...interfa
 func (q *QueryBuilderRPCClient) Upsert(value interface{}, updateColumns ...string) QueryResult {
 	data := structToMap(value)
 	req := ExecRequest{
-		TableName:     q.tableName,
-		Operation:     "upsert",
-		Data:          data,
-		UpdateColumns: updateColumns,
+		TableName:       q.tableName,
+		Operation:       "upsert",
+		Data:            data,
+		UpdateColumns:   updateColumns,
+		ConflictColumns: detectConflictColumns(value, mapKeys(data)),
 	}
 	var resp QueryResponse
 	err := q.client.Call("Plugin.QueryExec", req, &resp)
@@ -364,7 +367,7 @@ func (q *QueryBuilderRPCClient) Upsert(value interface{}, updateColumns ...strin
 		return QueryResult{Error: err}
 	}
 	if resp.Error != "" {
-		return QueryResult{Error: fmt.Errorf(resp.Error)}
+		return QueryResult{Error: errors.New(resp.Error)}
 	}
 	return QueryResult{RowsAffected: resp.RowsAffected, LastInsertID: resp.LastInsertID}
 }
@@ -403,7 +406,12 @@ func (s *QueryBuilderRPCServer) QueryExec(req ExecRequest, resp *QueryResponse) 
 	case "delete":
 		sql, args = s.buildDeleteSQL(req)
 	case "upsert":
-		sql, args = s.buildUpsertSQL(req)
+		var err error
+		sql, args, err = s.buildUpsertSQL(req)
+		if err != nil {
+			resp.Error = err.Error()
+			return nil
+		}
 	default:
 		resp.Error = "unknown operation: " + req.Operation
 		return nil
@@ -566,7 +574,7 @@ func (s *QueryBuilderRPCServer) buildDeleteSQL(req ExecRequest) (string, []inter
 	return sql, whereArgs
 }
 
-func (s *QueryBuilderRPCServer) buildUpsertSQL(req ExecRequest) (string, []interface{}) {
+func (s *QueryBuilderRPCServer) buildUpsertSQL(req ExecRequest) (string, []interface{}, error) {
 	var columns []string
 	var placeholders []string
 	var args []interface{}
@@ -585,24 +593,31 @@ func (s *QueryBuilderRPCServer) buildUpsertSQL(req ExecRequest) (string, []inter
 	if len(req.UpdateColumns) > 0 {
 		// Update only specified columns
 		for _, col := range req.UpdateColumns {
-			updateParts = append(updateParts, fmt.Sprintf("%s = VALUES(%s)", col, col))
+			if isPostgresDialect() {
+				updateParts = append(updateParts, fmt.Sprintf("%s = EXCLUDED.%s", quoteSQLIdentifier(col), quoteSQLIdentifier(col)))
+			} else {
+				updateParts = append(updateParts, fmt.Sprintf("%s = VALUES(%s)", col, col))
+			}
 		}
 	} else {
 		// Update all columns except id
 		for _, col := range columns {
 			if col != "id" {
-				updateParts = append(updateParts, fmt.Sprintf("%s = VALUES(%s)", col, col))
+				if isPostgresDialect() {
+					updateParts = append(updateParts, fmt.Sprintf("%s = EXCLUDED.%s", quoteSQLIdentifier(col), quoteSQLIdentifier(col)))
+				} else {
+					updateParts = append(updateParts, fmt.Sprintf("%s = VALUES(%s)", col, col))
+				}
 			}
 		}
 	}
 
-	sql := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s",
-		req.TableName,
-		join(columns, ", "),
-		join(placeholders, ", "),
-		join(updateParts, ", "))
+	sql, err := buildUpsertSQL(req.TableName, columns, placeholders, updateParts, req.ConflictColumns)
+	if err != nil {
+		return "", nil, err
+	}
 
-	return sql, args
+	return sql, args, nil
 }
 
 // Helper functions
@@ -616,4 +631,12 @@ func join(parts []string, sep string) string {
 		result += sep + parts[i]
 	}
 	return result
+}
+
+func mapKeys(data map[string]interface{}) []string {
+	keys := make([]string, 0, len(data))
+	for key := range data {
+		keys = append(keys, key)
+	}
+	return keys
 }
