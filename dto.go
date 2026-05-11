@@ -71,6 +71,23 @@ type CompanyAdvanceSums struct {
 	SupplierAdvances map[string]float64 `json:"supplierAdvances"`
 	BuyerAdvances    map[string]float64 `json:"buyerAdvances"`
 }
+type CompaniesRequest struct {
+	PerPage     int       `json:"perPage"`
+	Page        int       `json:"page"`
+	CompanyIds  []uint    `json:"companyIds"`
+	SearchQuery string    `json:"searchQuery"`
+	DateFrom    time.Time `json:"dateFrom"`
+	DateTo      time.Time `json:"dateTo"`
+	IsBuyer     bool      `json:"isBuyer"`
+	IsSupplier  bool      `json:"isSupplier"`
+	OrderBy     string    `json:"orderBy"`
+	OrderWay    string    `json:"orderWay"`
+}
+type CompaniesResponse struct {
+	Success        bool      `json:"success"`
+	Companies      []Company `json:"companies"`
+	CompaniesCount int64     `json:"companiesCount"`
+}
 type InvoicesRequest struct {
 	UnlimitPerPage          bool
 	PerPage                 int
@@ -101,35 +118,41 @@ type InvoicesListResponse struct {
 	Last30DaysInvoicesCount int64              `json:"last30DaysInvoicesCount"`
 }
 type InvoiceFull struct {
-	InvoiceId      int32                `json:"invoiceId"`
-	IsPurchase     bool                 `json:"isPurchase"`
-	Operation      string               `json:"operation"`
-	CompanyName    string               `json:"companyName"`
-	CompanyId      int32                `json:"companyId"`
-	DocSeries      string               `json:"docSeries"`
-	Document       string               `json:"document"`
-	Document2      string               `json:"document2"`
-	InnerDocument  string               `json:"innerDocument"`
-	InvoiceDate    time.Time            `json:"invoiceDate"`
-	TotalVat       float64              `json:"totalVat"`
-	TotalWoVat     float64              `json:"totalWoVat"`
-	TotalWithVat   float64              `json:"totalWithVat"`
-	TotalCurrency  string               `json:"totalCurrency"`
-	InvoicePaid    bool                 `json:"invoicePaid"`
-	DebtSum        float64              `json:"debtSum"`
-	PaidSum        float64              `json:"paidSum"`
-	PaidLastDate   time.Time            `json:"paidLastDate"`
-	PayUntilDate   time.Time            `json:"payUntilDate"`
-	ReceiveDate    time.Time            `json:"receiveDate"`
-	TotalCostSum   float64              `json:"totalCostSum"`
-	TotalGainSum   float64              `json:"totalGainSum"`
-	FromWarehouse  string               `json:"fromWarehouse"`
-	ToWarehouse    string               `json:"toWarehouse"`
-	Comment        string               `json:"comment"`
-	FreezeFinances bool                 `json:"freezeFinances"`
-	Costs          []InvoiceCost        `json:"costs"`
-	ExtraSettings  ExtraInvoiceSettings `json:"extraSettings"`
-	PosData        InvoicePosData       `json:"posData"`
+	InvoiceId            int32                `json:"invoiceId"`
+	IsPurchase           bool                 `json:"isPurchase"`
+	Operation            string               `json:"operation"`
+	CompanyName          string               `json:"companyName"`
+	CompanyId            int32                `json:"companyId"`
+	DocSeries            string               `json:"docSeries"`
+	Document             string               `json:"document"`
+	Document2            string               `json:"document2"`
+	InnerDocument        string               `json:"innerDocument"`
+	InvoiceDate          time.Time            `json:"invoiceDate"`
+	TotalVat             float64              `json:"totalVat"`
+	TotalWoVat           float64              `json:"totalWoVat"`
+	TotalWithVat         float64              `json:"totalWithVat"`
+	TotalExclTax         float64              `json:"totalExclTax"`
+	TotalTax             float64              `json:"totalTax"`
+	TotalInclTax         float64              `json:"totalInclTax"`
+	TotalCurrency        string               `json:"totalCurrency"`
+	TotalDiscountExclTax float64              `json:"totalDiscountExclTax"`
+	TotalDiscountInclTax float64              `json:"totalDiscountInclTax"`
+	TotalCompensation    float64              `json:"totalCompensation"`
+	InvoicePaid          bool                 `json:"invoicePaid"`
+	DebtSum              float64              `json:"debtSum"`
+	PaidSum              float64              `json:"paidSum"`
+	PaidLastDate         time.Time            `json:"paidLastDate"`
+	PayUntilDate         time.Time            `json:"payUntilDate"`
+	ReceiveDate          time.Time            `json:"receiveDate"`
+	TotalCostSum         float64              `json:"totalCostSum"`
+	TotalGainSum         float64              `json:"totalGainSum"`
+	FromWarehouse        string               `json:"fromWarehouse"`
+	ToWarehouse          string               `json:"toWarehouse"`
+	Comment              string               `json:"comment"`
+	FreezeFinances       bool                 `json:"freezeFinances"`
+	Costs                []InvoiceCost        `json:"costs"`
+	ExtraSettings        ExtraInvoiceSettings `json:"extraSettings"`
+	PosData              InvoicePosData       `json:"posData"`
 
 	InsertDatetime time.Time `json:"insertDatetime"`
 	ModifyDatetime time.Time `json:"updateDatetime"`
@@ -153,25 +176,35 @@ type InvoiceCost struct {
 	CreditAccountNo string  `json:"creditAccountNo"`
 }
 type InvoiceProduct struct {
-	ProductName         string  `json:"name"` // for out
-	ProductId           uint    `json:"productId"`
-	Quantity            float64 `json:"quantity"`
-	LeftQuantity        float64 `json:"leftQuantity"` // Used for purchase
-	Price               float64 `json:"price"`
-	PriceIsWithVat      bool    `json:"priceIsWithVat"`
-	CostPrice           float64 `json:"costPrice"`
-	CostCurrency        string  `json:"costCurrency"`
-	VatPercentage       float64 `json:"vatPercentage"`
-	VatClass            string  `json:"vatClass"`
-	Articule            string  `json:"articule"`
-	Description         string  `json:"description"`
-	UseStockId          bool    `json:"useStockId"`
-	StockId             int32   `json:"stockId"`
-	LineId              int32   `json:"lineId"`    // for out
-	Countable           bool    `json:"countable"` // for out
-	Sum                 float64 `json:"sum"`
+	ProductName         string   `json:"name"` // for out
+	ProductId           uint     `json:"productId"`
+	Quantity            float64  `json:"quantity"`
+	MeasurementUnit     string   `json:"measurementUnit"`
+	LeftQuantity        float64  `json:"leftQuantity"` // Used for purchase
+	Price               float64  `json:"price"`
+	PriceExclTax        float64  `json:"priceExclTax"`
+	PriceInclTax        float64  `json:"priceInclTax"`
+	PriceIsWithVat      bool     `json:"priceIsWithVat"`
+	CostPrice           float64  `json:"costPrice"`
+	CostCurrency        string   `json:"costCurrency"`
+	VatPercentage       float64  `json:"vatPercentage"`
+	VatClass            string   `json:"vatClass"`
+	TaxCode             string   `json:"taxCode,omitempty"`
+	TaxAmount           *float64 `json:"taxAmount,omitempty"`
+	Articule            string   `json:"articule"`
+	Description         string   `json:"description"`
+	UseStockId          bool     `json:"useStockId"`
+	StockId             int32    `json:"stockId"`
+	LineId              int32    `json:"lineId"`    // for out
+	Countable           bool     `json:"countable"` // for out
+	Sum                 float64  `json:"sum"`
+	TotalExclTax        float64  `json:"totalExclTax"`
+	TotalInclTax        float64  `json:"totalInclTax"`
 	UseCostPriceAsPrice bool
 	DiscountValue       float64 `json:"discountValue"`
+	DiscountAmount      float64 `json:"discountAmount"`
+	DiscountPerUnit     float64 `json:"discountPerUnit"`
+	DiscountPercent     float64 `json:"discountPercent"`
 	DiscountType        string  `json:"discountType"`
 	// For returns - this is lineId of original line that is returned
 	ParentLineId  int32 `json:"parentLineId"`
@@ -188,6 +221,75 @@ type InvoiceReference struct {
 	InvoiceId         uint   `json:"invoiceId"`
 	ReferredInvoiceId uint   `json:"referredInvoiceId"`
 	ReferenceType     string `json:"referenceType"`
+}
+
+type InvoicePaymentsRequest struct {
+	InvoiceId  uint      `json:"invoiceId"`
+	InvoiceIds []uint    `json:"invoiceIds"`
+	DateFrom   time.Time `json:"dateFrom"`
+	DateTo     time.Time `json:"dateTo"`
+	Page       int       `json:"page"`
+	PerPage    int       `json:"perPage"`
+}
+type InvoicePayment struct {
+	InvoiceId   uint      `json:"invoiceId"`
+	Account     string    `json:"account"`
+	Sum         float64   `json:"sum"`
+	Currency    string    `json:"currency"`
+	PaymentDate time.Time `json:"paymentDate"`
+}
+type InvoicePaymentsResponse struct {
+	Success  bool             `json:"success"`
+	Payments []InvoicePayment `json:"payments"`
+	Count    int64            `json:"count"`
+}
+
+type JournalEntriesRequest struct {
+	PerPage         int       `json:"perPage"`
+	Page            int       `json:"page"`
+	JournalEntryIds []uint    `json:"journalEntryIds"`
+	EntryTypes      []string  `json:"entryTypes"`
+	DateFrom        time.Time `json:"dateFrom"`
+	DateTo          time.Time `json:"dateTo"`
+	CustomerIds     []uint    `json:"customerIds"`
+	InvoiceIds      []uint    `json:"invoiceIds"`
+	AdvanceIds      []uint    `json:"advanceIds"`
+	SearchQuery     string    `json:"searchQuery"`
+}
+type JournalEntryLine struct {
+	ID             uint      `json:"id"`
+	JournalEntryId uint      `json:"journalEntryId"`
+	Date           time.Time `json:"date"`
+	Debit          float64   `json:"debit"`
+	Credit         float64   `json:"credit"`
+	InvoiceId      uint      `json:"invoiceId"`
+	CustomerId     uint      `json:"customerId"`
+	CompanyName    string    `json:"companyName"`
+	Sum            float64   `json:"sum"`
+	Currency       string    `json:"currency"`
+	AdvanceId      uint      `json:"advanceId"`
+	AccountNo      string    `json:"accountNo"`
+}
+type JournalEntry struct {
+	ID          uint               `json:"id"`
+	EntryType   string             `json:"entryType"`
+	EntryDate   time.Time          `json:"entryDate"`
+	BankDate    time.Time          `json:"bankDate"`
+	DocNo       string             `json:"docNo"`
+	AccountNo   string             `json:"accountNo"`
+	CustomerId  uint               `json:"customerId"`
+	CompanyName string             `json:"companyName"`
+	InvoiceId   uint               `json:"invoiceId"`
+	AdvanceId   uint               `json:"advanceId"`
+	TotalSum    float64            `json:"totalSum"`
+	Currency    string             `json:"currency"`
+	Lines       []JournalEntryLine `json:"lines"`
+}
+type JournalEntriesResponse struct {
+	Success        bool           `json:"success"`
+	JournalEntries []JournalEntry `json:"journalEntries"`
+	Count          int64          `json:"count"`
+	Currency       string         `json:"currency"`
 }
 
 type DocumentOperation struct {
@@ -733,12 +835,14 @@ type OrdersRequest struct {
 	SelectOnlyProformas          bool      `json:"selectOnlyProformas"`
 	SelectOnlyPeriodic           bool      `json:"selectOnlyPeriodic"`
 	SelectOnlyCompleted          bool
-	SelectOnlyUncompleted        bool   // in progress
-	SelectIncludingDeletedOrders bool   // including deleted
-	SelectOnlyDeletedOrders      bool   // deleted
-	CompanyId                    uint   `json:"companyId"`
-	ExternalUserId               uint   `json:"externalUserId"`
-	StatusIds                    []uint `json:"statusIds"`
+	SelectOnlyUncompleted        bool     // in progress
+	SelectIncludingDeletedOrders bool     // including deleted
+	SelectOnlyDeletedOrders      bool     // deleted
+	CompanyId                    uint     `json:"companyId"`
+	ExternalUserId               uint     `json:"externalUserId"`
+	StatusIds                    []uint   `json:"statusIds"`
+	StatusCodes                  []string `json:"statusCodes"`
+	StatusLetters                []string `json:"statusLetters"`
 	Filters                      []ItemFilter
 	Token                        string `json:"token"`
 	QueryType                    string `json:"queryType"`
@@ -968,6 +1072,36 @@ type IntegrationSyncRecordsRequest struct {
 	Info         string
 	OrderBy      string // by default by syncTime
 	OrderWay     string // by default - DESC
+}
+
+type PluginSyncState struct {
+	SyncId    uint      `json:"syncId"`
+	Plugin    string    `json:"plugin"`
+	Entity    string    `json:"entity"`
+	EntityId  string    `json:"entityId"`
+	ToSync    bool      `json:"toSync"`
+	Done      bool      `json:"done"`
+	Error     bool      `json:"error"`
+	ErrorText string    `json:"errorText"`
+	SyncTime  time.Time `json:"syncTime"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+type PluginSyncStateRequest struct {
+	Page     int    `json:"page"`
+	PerPage  int    `json:"perPage"`
+	Plugin   string `json:"plugin"`
+	Entity   string `json:"entity"`
+	EntityId string `json:"entityId"`
+	ToSync   bool   `json:"toSync"`
+	Done     bool   `json:"done"`
+	Error    bool   `json:"error"`
+	OrderBy  string `json:"orderBy"`
+	OrderWay string `json:"orderWay"`
+}
+type PluginSyncStateResponse struct {
+	Success bool              `json:"success"`
+	States  []PluginSyncState `json:"states"`
+	Count   int64             `json:"count"`
 }
 
 type PosDiscountCard struct {

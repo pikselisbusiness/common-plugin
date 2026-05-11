@@ -111,6 +111,16 @@ type GetCompanyByIdResponse struct {
 	Error   error
 }
 
+// GetCompanies
+type GetCompaniesRequest struct {
+	Context RequestContext
+	Request CompaniesRequest
+}
+type GetCompaniesResponse struct {
+	Response CompaniesResponse
+	Error    error
+}
+
 // GetCompanyByCode
 type GetCompanyByCodeRequest struct {
 	Context     RequestContext
@@ -334,6 +344,36 @@ type GetInvoiceExistsByDocumentResponse struct {
 	Error  error
 }
 
+// GetInvoicePayments
+type GetInvoicePaymentsRequest struct {
+	Context RequestContext
+	Request InvoicePaymentsRequest
+}
+type GetInvoicePaymentsResponse struct {
+	Response InvoicePaymentsResponse
+	Error    error
+}
+
+// GetJournalEntries
+type GetJournalEntriesRequest struct {
+	Context RequestContext
+	Request JournalEntriesRequest
+}
+type GetJournalEntriesResponse struct {
+	Response JournalEntriesResponse
+	Error    error
+}
+
+// GetJournalEntryById
+type GetJournalEntryByIdRequest struct {
+	Context        RequestContext
+	JournalEntryId uint
+}
+type GetJournalEntryByIdResponse struct {
+	JournalEntry JournalEntry
+	Error        error
+}
+
 // PatchUpdateInvoice
 type PatchUpdateInvoiceRequest struct {
 	Context   RequestContext
@@ -380,6 +420,35 @@ type GetIntegrationSyncRecordsRequest struct {
 type GetIntegrationSyncRecordsResponse struct {
 	SyncRecords []IntegrationSyncRecord
 	Error       error
+}
+
+// UpsertPluginSyncState
+type UpsertPluginSyncStateRequest struct {
+	Context RequestContext
+	State   PluginSyncState
+}
+type UpsertPluginSyncStateResponse struct {
+	Error error
+}
+
+// ListPluginSyncStates
+type ListPluginSyncStatesRequest struct {
+	Context RequestContext
+	Request PluginSyncStateRequest
+}
+type ListPluginSyncStatesResponse struct {
+	Response PluginSyncStateResponse
+	Error    error
+}
+
+// CountPluginSyncStates
+type CountPluginSyncStatesRequest struct {
+	Context RequestContext
+	Request PluginSyncStateRequest
+}
+type CountPluginSyncStatesResponse struct {
+	Count int64
+	Error error
 }
 
 // GetPosDiscountCards
@@ -656,6 +725,28 @@ func (m *apiRPCClient) GetCompanyById(context RequestContext, companyId uint) (C
 	}
 
 	return reply.Company, reply.Error
+}
+
+func (m *apiRPCServer) GetCompanies(req GetCompaniesRequest, resp *GetCompaniesResponse) error {
+	response, err := m.impl.GetCompanies(req.Context, req.Request)
+
+	resp.Response = response
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) GetCompanies(context RequestContext, request CompaniesRequest) (CompaniesResponse, error) {
+
+	var reply GetCompaniesResponse
+	err := m.client.Call("Plugin.GetCompanies", GetCompaniesRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return CompaniesResponse{}, err
+	}
+
+	return reply.Response, reply.Error
 }
 
 func (m *apiRPCServer) GetCompanyByCode(req GetCompanyByCodeRequest, resp *GetCompanyByCodeResponse) error {
@@ -1131,6 +1222,66 @@ func (m *apiRPCClient) GetInvoiceExistsByDocument(context RequestContext, docume
 
 	return reply.Exists, reply.Error
 }
+func (m *apiRPCServer) GetInvoicePayments(req GetInvoicePaymentsRequest, resp *GetInvoicePaymentsResponse) error {
+	response, error := m.impl.GetInvoicePayments(req.Context, req.Request)
+
+	resp.Response = response
+	resp.Error = encodableError(error)
+	return nil
+}
+func (m *apiRPCClient) GetInvoicePayments(context RequestContext, request InvoicePaymentsRequest) (InvoicePaymentsResponse, error) {
+
+	var reply GetInvoicePaymentsResponse
+	err := m.client.Call("Plugin.GetInvoicePayments", GetInvoicePaymentsRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return InvoicePaymentsResponse{}, err
+	}
+
+	return reply.Response, reply.Error
+}
+func (m *apiRPCServer) GetJournalEntries(req GetJournalEntriesRequest, resp *GetJournalEntriesResponse) error {
+	response, error := m.impl.GetJournalEntries(req.Context, req.Request)
+
+	resp.Response = response
+	resp.Error = encodableError(error)
+	return nil
+}
+func (m *apiRPCClient) GetJournalEntries(context RequestContext, request JournalEntriesRequest) (JournalEntriesResponse, error) {
+
+	var reply GetJournalEntriesResponse
+	err := m.client.Call("Plugin.GetJournalEntries", GetJournalEntriesRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return JournalEntriesResponse{}, err
+	}
+
+	return reply.Response, reply.Error
+}
+func (m *apiRPCServer) GetJournalEntryById(req GetJournalEntryByIdRequest, resp *GetJournalEntryByIdResponse) error {
+	journalEntry, error := m.impl.GetJournalEntryById(req.Context, req.JournalEntryId)
+
+	resp.JournalEntry = journalEntry
+	resp.Error = encodableError(error)
+	return nil
+}
+func (m *apiRPCClient) GetJournalEntryById(context RequestContext, journalEntryId uint) (JournalEntry, error) {
+
+	var reply GetJournalEntryByIdResponse
+	err := m.client.Call("Plugin.GetJournalEntryById", GetJournalEntryByIdRequest{
+		Context:        context,
+		JournalEntryId: journalEntryId,
+	}, &reply)
+	if err != nil {
+		return JournalEntry{}, err
+	}
+
+	return reply.JournalEntry, reply.Error
+}
 func (m *apiRPCServer) PatchUpdateInvoice(req PatchUpdateInvoiceRequest, resp *PatchUpdateInvoiceResponse) error {
 	error := m.impl.PatchUpdateInvoice(req.Context, req.InvoiceId, req.Request)
 
@@ -1232,6 +1383,68 @@ func (m *apiRPCClient) GetIntegrationSyncRecords(context RequestContext, request
 	}
 
 	return reply.SyncRecords, reply.Error
+}
+
+func (m *apiRPCServer) UpsertPluginSyncState(req UpsertPluginSyncStateRequest, resp *UpsertPluginSyncStateResponse) error {
+	error := m.impl.UpsertPluginSyncState(req.Context, req.State)
+
+	resp.Error = encodableError(error)
+	return nil
+}
+func (m *apiRPCClient) UpsertPluginSyncState(context RequestContext, state PluginSyncState) error {
+
+	var reply UpsertPluginSyncStateResponse
+	err := m.client.Call("Plugin.UpsertPluginSyncState", UpsertPluginSyncStateRequest{
+		Context: context,
+		State:   state,
+	}, &reply)
+	if err != nil {
+		return err
+	}
+
+	return reply.Error
+}
+
+func (m *apiRPCServer) ListPluginSyncStates(req ListPluginSyncStatesRequest, resp *ListPluginSyncStatesResponse) error {
+	response, error := m.impl.ListPluginSyncStates(req.Context, req.Request)
+
+	resp.Response = response
+	resp.Error = encodableError(error)
+	return nil
+}
+func (m *apiRPCClient) ListPluginSyncStates(context RequestContext, request PluginSyncStateRequest) (PluginSyncStateResponse, error) {
+
+	var reply ListPluginSyncStatesResponse
+	err := m.client.Call("Plugin.ListPluginSyncStates", ListPluginSyncStatesRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return PluginSyncStateResponse{}, err
+	}
+
+	return reply.Response, reply.Error
+}
+
+func (m *apiRPCServer) CountPluginSyncStates(req CountPluginSyncStatesRequest, resp *CountPluginSyncStatesResponse) error {
+	count, error := m.impl.CountPluginSyncStates(req.Context, req.Request)
+
+	resp.Count = count
+	resp.Error = encodableError(error)
+	return nil
+}
+func (m *apiRPCClient) CountPluginSyncStates(context RequestContext, request PluginSyncStateRequest) (int64, error) {
+
+	var reply CountPluginSyncStatesResponse
+	err := m.client.Call("Plugin.CountPluginSyncStates", CountPluginSyncStatesRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return 0, err
+	}
+
+	return reply.Count, reply.Error
 }
 
 func (m *apiRPCServer) GetPosDiscountCards(req GetPosDiscountCardsRequest, resp *GetPosDiscountCardsResponse) error {

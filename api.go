@@ -13,6 +13,7 @@ type API interface {
 	GetDivisions(context RequestContext, request DivisionsRequest) ([]Division, error)
 
 	GetCompanyById(context RequestContext, companyId uint) (Company, error)
+	GetCompanies(context RequestContext, request CompaniesRequest) (CompaniesResponse, error)
 	GetCompaniesMap(context RequestContext, companyIds []uint) (map[uint]Company, error)
 	GetCompanyByCode(context RequestContext, companyCode string) (Company, error)
 	GetCompanyByVatCode(context RequestContext, companyVatCode string) (Company, error)
@@ -40,12 +41,18 @@ type API interface {
 
 	CreateInvoice(context RequestContext, request InvoiceCreateUpdateRequest) (uint, error, InvoiceErrorResponse)
 	GetInvoiceExistsByDocument(context RequestContext, document string) (bool, error)
+	GetInvoicePayments(context RequestContext, request InvoicePaymentsRequest) (InvoicePaymentsResponse, error)
+	GetJournalEntries(context RequestContext, request JournalEntriesRequest) (JournalEntriesResponse, error)
+	GetJournalEntryById(context RequestContext, journalEntryId uint) (JournalEntry, error)
 	PatchUpdateInvoice(context RequestContext, invoiceId uint, request map[string]interface{}) error
 	CreateInvoiceReference(context RequestContext, request InvoiceReference) error
 
 	CreateIntegrationSyncRecord(context RequestContext, sync IntegrationSyncRecord) (uint, error)
 	DeleteIntegrationSyncRecordById(context RequestContext, syncRecordId uint) error
 	GetIntegrationSyncRecords(context RequestContext, request IntegrationSyncRecordsRequest) ([]IntegrationSyncRecord, error)
+	UpsertPluginSyncState(context RequestContext, state PluginSyncState) error
+	ListPluginSyncStates(context RequestContext, request PluginSyncStateRequest) (PluginSyncStateResponse, error)
+	CountPluginSyncStates(context RequestContext, request PluginSyncStateRequest) (int64, error)
 
 	GetPosDiscountCards(context RequestContext, request PosDiscountCardsRequest) (PosDiscountCardsResponse, error)
 
