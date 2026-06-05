@@ -981,7 +981,8 @@ type ProductStocksResponse struct {
 }
 
 type InvoiceSend struct {
-	ToSend bool `json:"toSend"`
+	ToSend bool     `json:"toSend"`
+	Emails []string `json:"emails"`
 }
 type InvoiceCreateUpdateRequest struct {
 	InvoiceId            int32                `json:"invoiceId"` // FOR update only
