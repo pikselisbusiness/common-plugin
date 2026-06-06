@@ -620,10 +620,11 @@ type OrderShippingAddress struct {
 	ShippingMobilePhone string `json:"shippingMobilePhone"`
 }
 type OrderPickupLocation struct {
-	LocationId       int32  `json:"locationId"`
-	LocationName     string `json:"locationName"`
-	LocationCity     string `json:"locationCity"`
-	LocationPostCode string `json:"locationPostCode"`
+	LocationId          int32  `json:"locationId"`
+	LocationName        string `json:"locationName"`
+	LocationCity        string `json:"locationCity"`
+	LocationPostCode    string `json:"locationPostCode"`
+	LocationCompanyCode string `json:"locationCompanyCode"`
 }
 
 type OrderHeadingsWithLines struct {
