@@ -47,6 +47,9 @@ type RouteUrl struct {
 	// Possible to skip auth for route - to implement your own auth
 	// Use with caution
 	SkipAuth bool
+	// RequiredRight is an optional module right value the host can enforce
+	// for this route. Empty keeps legacy plugin-level permission behavior.
+	RequiredRight ModuleValue
 }
 
 type RouteResponse struct {
@@ -182,4 +185,88 @@ type CommonV2 interface {
 
 	// Plugins can handle events such as cart, order, etc.
 	HandleEvent(context RequestContext, event EventEnvelope) (HandleResult, error)
+}
+
+// PluginCapability describes one host capability a plugin wants to use.
+// Hosts can use this for install-time review, permission enforcement, and
+// admin UI. A capability name should be stable, for example "orders.read".
+type PluginCapability struct {
+	Name        string         `json:"name"`
+	Access      []ModuleValue  `json:"access,omitempty"`
+	Description string         `json:"description,omitempty"`
+	Optional    bool           `json:"optional,omitempty"`
+	Props       map[string]any `json:"props,omitempty"`
+}
+
+// PluginRouteCapability is declarative route metadata. It can mirror routes
+// returned by GetRoutes while adding information that old RouteUrl fields did
+// not carry, such as permission requirements.
+type PluginRouteCapability struct {
+	Type          string      `json:"type"`
+	Url           string      `json:"url"`
+	SkipAuth      bool        `json:"skipAuth,omitempty"`
+	RequiredRight ModuleValue `json:"requiredRight,omitempty"`
+}
+
+// PluginEventSubscription tells the host which event topics should be delivered
+// to the plugin. This keeps plugins from receiving broad default topics when
+// they only care about a specific business event stream.
+type PluginEventSubscription struct {
+	Topic   string `json:"topic"`
+	Version string `json:"version,omitempty"`
+}
+
+// PluginCronCapability documents cron jobs a plugin expects to register.
+// Cron execution still happens through RegisterCronJob/RegisterCronJobWithTag.
+type PluginCronCapability struct {
+	Tag      string `json:"tag,omitempty"`
+	Schedule string `json:"schedule"`
+}
+
+// PluginUICapability describes where a plugin wants frontend surface area.
+// The backend can expose this metadata before every frontend slot is supported.
+type PluginUICapability struct {
+	Slot      string         `json:"slot"`
+	Component string         `json:"component,omitempty"`
+	Props     map[string]any `json:"props,omitempty"`
+}
+
+// PluginCapabilities is the optional CommonV3 contract. It explains what a
+// plugin needs and where it extends the product without changing legacy route,
+// cron, or event method signatures.
+type PluginCapabilities struct {
+	PluginAPIVersion    string                    `json:"pluginApiVersion,omitempty"`
+	HostAPIVersionRange string                    `json:"hostApiVersionRange,omitempty"`
+	HostVersionRange    string                    `json:"hostVersionRange,omitempty"`
+	APIVersion          string                    `json:"apiVersion,omitempty"` // Deprecated: use PluginAPIVersion.
+	RequiredHostScopes  []PluginCapability        `json:"requiredHostScopes,omitempty"`
+	OptionalHostScopes  []PluginCapability        `json:"optionalHostScopes,omitempty"`
+	Routes              []PluginRouteCapability   `json:"routes,omitempty"`
+	EventSubscriptions  []PluginEventSubscription `json:"eventSubscriptions,omitempty"`
+	CronJobs            []PluginCronCapability    `json:"cronJobs,omitempty"`
+	UIExtensions        []PluginUICapability      `json:"uiExtensions,omitempty"`
+	Props               map[string]any            `json:"props,omitempty"`
+}
+
+// PluginConfigValidationResult is returned before saving or applying plugin
+// settings. Field keys should match config field IDs where possible.
+type PluginConfigValidationResult struct {
+	Valid  bool              `json:"valid"`
+	Errors map[string]string `json:"errors,omitempty"`
+}
+
+// PluginConfigChange is passed after settings change so a plugin can refresh
+// clients, caches, schedules, or local state without a full restart.
+type PluginConfigChange struct {
+	OldConfig map[string]any `json:"oldConfig,omitempty"`
+	NewConfig map[string]any `json:"newConfig,omitempty"`
+}
+
+// CommonV3 is optional. Hosts must continue to support Common and CommonV2
+// plugins and should use this richer contract only when a plugin implements it.
+type CommonV3 interface {
+	CommonV2
+	PluginCapabilities() (PluginCapabilities, error)
+	ValidateConfig(context RequestContext, config map[string]any) (PluginConfigValidationResult, error)
+	OnConfigChanged(context RequestContext, change PluginConfigChange) error
 }

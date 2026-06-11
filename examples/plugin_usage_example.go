@@ -8,6 +8,7 @@ import (
 	"time"
 
 	shared "github.com/pikselisbusiness/common-plugin"
+	v2 "github.com/pikselisbusiness/common-plugin/v2"
 )
 
 // ========================================
@@ -63,6 +64,121 @@ func (PluginSetting) TableName() string {
 // ExamplePlugin demonstrates DBv2 usage
 type ExamplePlugin struct {
 	shared.PBPlugin
+}
+
+// PluginCapabilities documents what this plugin needs from the host.
+// Use explicit ranges for host API compatibility. If only a lower bound is
+// declared, the host cannot know whether future breaking API versions are safe.
+func (p *ExamplePlugin) PluginCapabilities() (shared.PluginCapabilities, error) {
+	return shared.PluginCapabilities{
+		PluginAPIVersion:    "2",
+		HostAPIVersionRange: ">=2.0.0 <3.0.0",
+		RequiredHostScopes: []shared.PluginCapability{
+			{
+				Name:        "invoices.read",
+				Access:      []shared.ModuleValue{shared.ModuleValueRead},
+				Description: "Read invoice lists for synchronization.",
+			},
+			{
+				Name:        "orders.write",
+				Access:      []shared.ModuleValue{shared.ModuleValueCreate, shared.ModuleValueUpdate},
+				Description: "Create or update orders imported from the external system.",
+			},
+			{
+				Name:        "companies.write",
+				Access:      []shared.ModuleValue{shared.ModuleValueCreate, shared.ModuleValueUpdate},
+				Description: "Create or update customers matched during import.",
+			},
+			{
+				Name:        "product-stocks.write",
+				Access:      []shared.ModuleValue{shared.ModuleValueCreate, shared.ModuleValueUpdate},
+				Description: "Set or adjust product stock quantities in mapped warehouses.",
+			},
+		},
+		OptionalHostScopes: []shared.PluginCapability{
+			{
+				Name:        "email.send",
+				Access:      []shared.ModuleValue{shared.ModuleValueCreate},
+				Optional:    true,
+				Description: "Send customer notification emails after successful import.",
+			},
+		},
+		Routes: []shared.PluginRouteCapability{
+			{
+				Type:          "GET",
+				Url:           "/api/v1/plugin/example/sync-status",
+				RequiredRight: shared.ModuleValueRead,
+			},
+		},
+		EventSubscriptions: []shared.PluginEventSubscription{
+			{Topic: "*.evt.order.*", Version: "1.x"},
+		},
+		CronJobs: []shared.PluginCronCapability{
+			{Tag: "sync", Schedule: "*/15 * * * *"},
+		},
+		UIExtensions: []shared.PluginUICapability{
+			{Slot: "orders.detail.actions", Component: "ExampleOrderSyncAction"},
+		},
+	}, nil
+}
+
+// ExampleInvoicesV2 shows the preferred invoice-list API for new plugins.
+// It carries tenant/user context and uses the newer external-API-aligned shape.
+func (p *ExamplePlugin) ExampleInvoicesV2(context shared.RequestContext) ([]v2.Invoice, error) {
+	api, ok := v2.From(p.API)
+	if !ok {
+		return nil, nil
+	}
+
+	response, err := api.Invoices().GetInvoices(context, v2.InvoicesRequest{
+		ListKind:      v2.InvoiceListKindSale,
+		PerPage:       50,
+		Page:          1,
+		CreatedAtFrom: time.Now().AddDate(0, 0, -7),
+		OrderBy:       "createdAt",
+		OrderWay:      "DESC",
+		OperationIds:  []uint{1, 2},
+		Warehouses:    []string{"MAIN"},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Invoices, nil
+}
+
+// ExampleCompanyV2 shows external-API-style company updates.
+func (p *ExamplePlugin) ExampleCompanyV2(context shared.RequestContext, companyId uint, email string) error {
+	api, ok := v2.From(p.API)
+	if !ok {
+		return nil
+	}
+
+	_, err := api.Companies().PatchCompany(context, companyId, v2.CompanyPatchRequest{
+		Email: &email,
+	})
+	return err
+}
+
+// ExampleStocksV2 shows a relative stock adjustment. Use SetProductStocks
+// when the external system sends the absolute final quantity instead.
+func (p *ExamplePlugin) ExampleStocksV2(context shared.RequestContext, productId uint, warehouseId int32, delta float64) error {
+	api, ok := v2.From(p.API)
+	if !ok {
+		return nil
+	}
+
+	_, err := api.Stocks().AdjustProductStocks(context, v2.ProductStockAdjustRequest{
+		Reason: v2.StockAdjustmentReasonCorrection,
+		Adjustments: []v2.ProductStockAdjustEntry{
+			{
+				ProductId:        productId,
+				WarehouseId:      warehouseId,
+				AdjustQuantityBy: delta,
+			},
+		},
+	})
+	return err
 }
 
 // ========================================

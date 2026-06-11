@@ -4,6 +4,8 @@ import (
 	"github.com/pikselisbusiness/go-plugin"
 )
 
+const CurrentPluginAPIVersion = "2.0.0"
+
 // Handshake is a common handshake that is shared by plugin and host.
 var Handshake = plugin.HandshakeConfig{
 	ProtocolVersion:  1,

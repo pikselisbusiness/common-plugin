@@ -28,6 +28,14 @@ func init() {
 	gob.Register(RequestContext{})
 	gob.Register(&http.Request{})
 	gob.Register(ModuleRightPermission{})
+	gob.Register(PluginCapabilities{})
+	gob.Register(PluginCapability{})
+	gob.Register(PluginRouteCapability{})
+	gob.Register(PluginEventSubscription{})
+	gob.Register(PluginCronCapability{})
+	gob.Register(PluginUICapability{})
+	gob.Register(PluginConfigValidationResult{})
+	gob.Register(PluginConfigChange{})
 	gob.Register(&url.Values{})
 	gob.Register(map[string]any{})
 	gob.Register(map[string]interface{}{})
@@ -160,6 +168,30 @@ type HandlEventRequest struct {
 type HandlEventResponse struct {
 	Result HandleResult
 	Error  error
+}
+
+type PluginCapabilitiesResponse struct {
+	Capabilities PluginCapabilities
+	Error        error
+}
+
+type ValidateConfigRequest struct {
+	Context RequestContext
+	Config  map[string]any
+}
+
+type ValidateConfigResponse struct {
+	Result PluginConfigValidationResult
+	Error  error
+}
+
+type ConfigChangedRequest struct {
+	Context RequestContext
+	Change  PluginConfigChange
+}
+
+type ConfigChangedResponse struct {
+	Error error
 }
 
 type EmptyRequest struct{}
@@ -529,4 +561,70 @@ func (m *CommonClientRPC) HandleEvent(context RequestContext, event EventEnvelop
 	}
 
 	return reply.Result, reply.Error
+}
+
+func (m *CommonServerRPC) PluginCapabilities(req EmptyRequest, resp *PluginCapabilitiesResponse) error {
+	if hook, ok := m.Impl.(interface {
+		PluginCapabilities() (PluginCapabilities, error)
+	}); ok {
+		capabilities, err := hook.PluginCapabilities()
+		resp.Capabilities = capabilities
+		resp.Error = encodableError(err)
+	}
+	return nil
+}
+
+func (m *CommonClientRPC) PluginCapabilities() (PluginCapabilities, error) {
+	var reply PluginCapabilitiesResponse
+	err := m.client.Call("Plugin.PluginCapabilities", EmptyRequest{}, &reply)
+	if err != nil {
+		return PluginCapabilities{}, err
+	}
+	return reply.Capabilities, decodableError(reply.Error)
+}
+
+func (m *CommonServerRPC) ValidateConfig(req ValidateConfigRequest, resp *ValidateConfigResponse) error {
+	if hook, ok := m.Impl.(interface {
+		ValidateConfig(context RequestContext, config map[string]any) (PluginConfigValidationResult, error)
+	}); ok {
+		result, err := hook.ValidateConfig(req.Context, req.Config)
+		resp.Result = result
+		resp.Error = encodableError(err)
+		return nil
+	}
+	resp.Result = PluginConfigValidationResult{Valid: true}
+	return nil
+}
+
+func (m *CommonClientRPC) ValidateConfig(context RequestContext, config map[string]any) (PluginConfigValidationResult, error) {
+	var reply ValidateConfigResponse
+	err := m.client.Call("Plugin.ValidateConfig", ValidateConfigRequest{
+		Context: context,
+		Config:  config,
+	}, &reply)
+	if err != nil {
+		return PluginConfigValidationResult{}, err
+	}
+	return reply.Result, decodableError(reply.Error)
+}
+
+func (m *CommonServerRPC) OnConfigChanged(req ConfigChangedRequest, resp *ConfigChangedResponse) error {
+	if hook, ok := m.Impl.(interface {
+		OnConfigChanged(context RequestContext, change PluginConfigChange) error
+	}); ok {
+		resp.Error = encodableError(hook.OnConfigChanged(req.Context, req.Change))
+	}
+	return nil
+}
+
+func (m *CommonClientRPC) OnConfigChanged(context RequestContext, change PluginConfigChange) error {
+	var reply ConfigChangedResponse
+	err := m.client.Call("Plugin.OnConfigChanged", ConfigChangedRequest{
+		Context: context,
+		Change:  change,
+	}, &reply)
+	if err != nil {
+		return err
+	}
+	return decodableError(reply.Error)
 }

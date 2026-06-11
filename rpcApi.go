@@ -901,6 +901,7 @@ func (m *apiRPCClient) GetProducts(context RequestContext, request ProductsReque
 
 	return reply.Response, reply.Error
 }
+
 func (m *apiRPCServer) GetProductsMap(req GetProductsMapRequest, resp *GetProductsMapResponse) error {
 	products, err := m.impl.GetProductsMap(req.Context, req.ProductIds)
 
@@ -986,6 +987,7 @@ func (m *apiRPCClient) GetProductStocks(rc RequestContext, request ProductStocks
 
 	return reply.Response, reply.Error
 }
+
 func (m *apiRPCServer) GetAvailableProductQuantityByWarehouses(req GetAvailableProductQuantityByWarehousesRequest, resp *GetAvailableProductQuantityByWarehousesResponse) error {
 	quantity, err := m.impl.GetAvailableProductQuantityByWarehouses(req.RequestContext, req.ProductId, req.Warehouses)
 	resp.Quantity = quantity

@@ -3,15 +3,12 @@ package shared
 import (
 	"encoding/json"
 	"time"
+
+	common "github.com/pikselisbusiness/common-plugin/common"
+	v2 "github.com/pikselisbusiness/common-plugin/v2"
 )
 
-type UserInfo struct {
-	UserId       uint   `json:"userId"`
-	UserImageUrl string `json:"userImageUrl"`
-	Username     string `json:"username"`
-	FirstName    string `json:"firstName"`
-	LastName     string `json:"lastName"`
-}
+type UserInfo = common.UserInfo
 type Company struct {
 	CompanyId      int32  `json:"companyId"`
 	CompanyName    string `json:"companyName"`
@@ -71,6 +68,7 @@ type CompanyAdvanceSums struct {
 	SupplierAdvances map[string]float64 `json:"supplierAdvances"`
 	BuyerAdvances    map[string]float64 `json:"buyerAdvances"`
 }
+
 type CompaniesRequest struct {
 	PerPage     int       `json:"perPage"`
 	Page        int       `json:"page"`
@@ -108,6 +106,25 @@ type InvoicesRequest struct {
 	OrderWay                string
 	Statuses                []string
 }
+
+type InvoiceListKind = common.InvoiceListKind
+
+const (
+	InvoiceListKindSale          = common.InvoiceListKindSale
+	InvoiceListKindPurchase      = common.InvoiceListKindPurchase
+	InvoiceListKindWarehouseMove = common.InvoiceListKindWarehouseMove
+	InvoiceListKindAll           = common.InvoiceListKindAll
+)
+
+type InvoiceType = v2.InvoiceType
+
+const (
+	InvoiceTypeSale     = v2.InvoiceTypeSale
+	InvoiceTypePurchase = v2.InvoiceTypePurchase
+)
+
+type InvoiceAddress = v2.InvoiceAddress
+type InvoiceInstallment = v2.InvoiceInstallment
 type InvoicesListResponse struct {
 	Success                 bool               `json:"success"`
 	Invoices                []InvoiceFull      `json:"invoices"`
@@ -117,6 +134,7 @@ type InvoicesListResponse struct {
 	TotalDebtsByCurrency    map[string]float64 `json:"totalDebtsByCurrency"`
 	Last30DaysInvoicesCount int64              `json:"last30DaysInvoicesCount"`
 }
+
 type InvoiceFull struct {
 	InvoiceId            int32                `json:"invoiceId"`
 	IsPurchase           bool                 `json:"isPurchase"`
@@ -164,211 +182,30 @@ type InvoiceFull struct {
 	Status       string          `json:"status"`
 	CustomFields json.RawMessage `json:"customFields"`
 }
-type ExtraInvoiceSettings struct {
-	IsafForm bool `json:"isafForm"`
-}
-type InvoiceCost struct {
-	Count           bool    `json:"count"`
-	Name            string  `json:"name"`
-	Sum             float64 `json:"sum"`
-	Currency        string  `json:"currency"`
-	DebitAccountNo  string  `json:"debitAccountNo"`
-	CreditAccountNo string  `json:"creditAccountNo"`
-}
-type InvoiceProduct struct {
-	ProductName         string   `json:"name"` // for out
-	ProductId           uint     `json:"productId"`
-	Quantity            float64  `json:"quantity"`
-	MeasurementUnit     string   `json:"measurementUnit"`
-	LeftQuantity        float64  `json:"leftQuantity"` // Used for purchase
-	Price               float64  `json:"price"`
-	PriceExclTax        float64  `json:"priceExclTax"`
-	PriceInclTax        float64  `json:"priceInclTax"`
-	PriceIsWithVat      bool     `json:"priceIsWithVat"`
-	CostPrice           float64  `json:"costPrice"`
-	CostCurrency        string   `json:"costCurrency"`
-	VatPercentage       float64  `json:"vatPercentage"`
-	VatClass            string   `json:"vatClass"`
-	TaxCode             string   `json:"taxCode,omitempty"`
-	TaxAmount           *float64 `json:"taxAmount,omitempty"`
-	Articule            string   `json:"articule"`
-	Description         string   `json:"description"`
-	UseStockId          bool     `json:"useStockId"`
-	StockId             int32    `json:"stockId"`
-	LineId              int32    `json:"lineId"`    // for out
-	Countable           bool     `json:"countable"` // for out
-	Sum                 float64  `json:"sum"`
-	TotalExclTax        float64  `json:"totalExclTax"`
-	TotalInclTax        float64  `json:"totalInclTax"`
-	UseCostPriceAsPrice bool
-	DiscountValue       float64 `json:"discountValue"`
-	DiscountAmount      float64 `json:"discountAmount"`
-	DiscountPerUnit     float64 `json:"discountPerUnit"`
-	DiscountPercent     float64 `json:"discountPercent"`
-	DiscountType        string  `json:"discountType"`
-	// For returns - this is lineId of original line that is returned
-	ParentLineId  int32 `json:"parentLineId"`
-	RelatedLineId int32 `json:"relatedLineId"`
-}
-type InvoicePosData struct {
-	CashierId  uint   `json:"cashierId"`
-	PosType    string `json:"posType"`
-	ReceiptNo  string `json:"receiptNo"`
-	ReceiptNo2 string `json:"receiptNo2"`
-}
+type ExtraInvoiceSettings = common.ExtraInvoiceSettings
+type InvoiceCost = common.InvoiceCost
+type InvoiceProduct = common.InvoiceProduct
+type InvoicePosData = common.InvoicePosData
+type InvoiceReference = common.InvoiceReference
+type InvoicePaymentsRequest = common.InvoicePaymentsRequest
+type InvoicePayment = common.InvoicePayment
+type InvoicePaymentsResponse = common.InvoicePaymentsResponse
+type JournalEntriesRequest = common.JournalEntriesRequest
+type JournalEntryLine = common.JournalEntryLine
+type JournalEntry = common.JournalEntry
+type JournalEntriesResponse = common.JournalEntriesResponse
 
-type InvoiceReference struct {
-	InvoiceId         uint   `json:"invoiceId"`
-	ReferredInvoiceId uint   `json:"referredInvoiceId"`
-	ReferenceType     string `json:"referenceType"`
-}
-
-type InvoicePaymentsRequest struct {
-	InvoiceId  uint      `json:"invoiceId"`
-	InvoiceIds []uint    `json:"invoiceIds"`
-	DateFrom   time.Time `json:"dateFrom"`
-	DateTo     time.Time `json:"dateTo"`
-	Page       int       `json:"page"`
-	PerPage    int       `json:"perPage"`
-}
-type InvoicePayment struct {
-	InvoiceId   uint      `json:"invoiceId"`
-	Account     string    `json:"account"`
-	Sum         float64   `json:"sum"`
-	Currency    string    `json:"currency"`
-	PaymentDate time.Time `json:"paymentDate"`
-}
-type InvoicePaymentsResponse struct {
-	Success  bool             `json:"success"`
-	Payments []InvoicePayment `json:"payments"`
-	Count    int64            `json:"count"`
-}
-
-type JournalEntriesRequest struct {
-	PerPage         int       `json:"perPage"`
-	Page            int       `json:"page"`
-	JournalEntryIds []uint    `json:"journalEntryIds"`
-	EntryTypes      []string  `json:"entryTypes"`
-	DateFrom        time.Time `json:"dateFrom"`
-	DateTo          time.Time `json:"dateTo"`
-	CustomerIds     []uint    `json:"customerIds"`
-	InvoiceIds      []uint    `json:"invoiceIds"`
-	AdvanceIds      []uint    `json:"advanceIds"`
-	SearchQuery     string    `json:"searchQuery"`
-}
-type JournalEntryLine struct {
-	ID             uint      `json:"id"`
-	JournalEntryId uint      `json:"journalEntryId"`
-	Date           time.Time `json:"date"`
-	Debit          float64   `json:"debit"`
-	Credit         float64   `json:"credit"`
-	InvoiceId      uint      `json:"invoiceId"`
-	CustomerId     uint      `json:"customerId"`
-	CompanyName    string    `json:"companyName"`
-	Sum            float64   `json:"sum"`
-	Currency       string    `json:"currency"`
-	AdvanceId      uint      `json:"advanceId"`
-	AccountNo      string    `json:"accountNo"`
-}
-type JournalEntry struct {
-	ID          uint               `json:"id"`
-	EntryType   string             `json:"entryType"`
-	EntryDate   time.Time          `json:"entryDate"`
-	BankDate    time.Time          `json:"bankDate"`
-	DocNo       string             `json:"docNo"`
-	AccountNo   string             `json:"accountNo"`
-	CustomerId  uint               `json:"customerId"`
-	CompanyName string             `json:"companyName"`
-	InvoiceId   uint               `json:"invoiceId"`
-	AdvanceId   uint               `json:"advanceId"`
-	TotalSum    float64            `json:"totalSum"`
-	Currency    string             `json:"currency"`
-	Lines       []JournalEntryLine `json:"lines"`
-}
-type JournalEntriesResponse struct {
-	Success        bool           `json:"success"`
-	JournalEntries []JournalEntry `json:"journalEntries"`
-	Count          int64          `json:"count"`
-	Currency       string         `json:"currency"`
-}
-
-type DocumentOperation struct {
-	OperationId uint   `json:"operationId"`
-	Operation   string `json:"operation"`
-	// Whether operation is purchase
-	OperPurchase bool `json:"operPurchase"`
-	// Whether operation is sale
-	OperSale bool `json:"operSale"`
-	// Whether operation is with VAT
-	OperVat      string `json:"operVat"`
-	OperSupplier bool   `json:"operSupplier"`
-	OperBuyer    bool   `json:"operBuyer"`
-	// Whether operation needs payment
-	OperPay                   bool      `json:"operPay"`
-	OperCost                  bool      `json:"operCost"`
-	OperMark                  bool      `json:"operMark"`
-	OperReturn                bool      `json:"operReturn"`
-	OperWarehouse             bool      `json:"operWarehouse"`
-	OperStockTaking           bool      `json:"operStockTaking"`
-	OperWriteOff              bool      `json:"operWriteOff"`
-	CostDebitAccountNo        string    `json:"costDebitAccountNo"`
-	CostCreditAccountNo       string    `json:"costCreditAccountNo"`
-	SaleDebitAccountNo        string    `json:"saleDebitAccountNo"`
-	SaleCreditAccountNo       string    `json:"saleCreditAccountNo"`
-	VatDebitAccountNo         string    `json:"vatDebitAccountNo"`
-	VatCreditAccountNo        string    `json:"vatCreditAccountNo"`
-	ReverseVatDebitAccountNo  string    `json:"reverseVatDebitAccountNo"`
-	ReverseVatCreditAccountNo string    `json:"reverseVatCreditAccountNo"`
-	DebtDebitAccountNo        string    `json:"debtDebitAccountNo"`
-	DebtCreditAccountNo       string    `json:"debtCreditAccountNo"`
-	CreatedAt                 time.Time `json:"createdAt"`
-	CreatedUserId             uint      `json:"createdUserId"`
-	UpdatedAt                 time.Time `json:"updatedAt"`
-	UpdatedUserId             uint      `json:"updatedUserId"`
-}
-type DocumentOperationsRequest struct {
-	OperationType string `json:"operationType"`
-}
-type DocumentOperationsResponse struct {
-	Operations []DocumentOperation `json:"operations"`
-}
+type DocumentOperation = common.DocumentOperation
+type DocumentOperationsRequest = common.DocumentOperationsRequest
+type DocumentOperationsResponse = common.DocumentOperationsResponse
 
 /**
 ---- DIVISIONS
 */
 
-type DivisionsRequest struct {
-	UsedForInvoiceReports bool
-	UsedForRepairs        bool
-	SearchQuery           string // unused
-}
-
-type Division struct {
-	DivisionId      int32  `json:"divisionId"`
-	Name            string `json:"name"`
-	Country         string `json:"country"`
-	City            string `json:"city"`
-	Street          string `json:"street"`
-	HouseNumber     string `json:"houseNumber"`
-	ApartmentNumber string `json:"apartmentNumber"`
-	PostCode        string `json:"postCode"`
-	// FullAddress           string              `json:"updateUserId"`
-	UsedForRepairs        bool                `json:"usedForRepairs"`
-	UsedForInvoiceReports bool                `json:"usedForInvoiceReports"`
-	IsDefault             bool                `json:"isDefault"`
-	InsertDatetime        time.Time           `json:"insertDatetime"`
-	InsertUserId          uint                `json:"insertUserId"`
-	UpdateUserId          uint                `json:"updateUserId"`
-	UpdateDatetime        time.Time           `json:"updateDatetime"`
-	Warehouses            []DivisionWarehouse `json:"warehouses"`
-	WarehouseIds          []uint              `json:"warehouseIds"`
-	PosType               string              `json:"posType"`
-}
-type DivisionWarehouse struct {
-	Warehouse   string `json:"warehouse"`
-	Name        string `json:"name"`
-	WarehouseId int32  `json:"warehouseId"`
-}
+type DivisionsRequest = common.DivisionsRequest
+type Division = common.Division
+type DivisionWarehouse = common.DivisionWarehouse
 
 type Product struct {
 	ProductId     uint    `json:"productId"`
@@ -521,29 +358,8 @@ type Product struct {
 	CustomFields  json.RawMessage `json:"customFields"`
 }
 
-type ProductMediaFile struct {
-	MediaFileId  uint   `json:"mediaFileId"`
-	FileUrl      string `json:"fileUrl"`      // CDN/public URL
-	MediaType    string `json:"mediaType"`    // image, video, pdf, etc.
-	MimeType     string `json:"mimeType"`     // image/jpeg, video/mp4, etc.
-	OriginalName string `json:"originalName"` // original file name
-	Hash         string `json:"hash"`         // (optional) for deduplication
-
-	// extended from assignments
-	OwnerType string `json:"ownerType"` // e.g., "product_merge", "product_variant", "brand", "category"
-	OwnerId   uint   `json:"ownerId"`   // e.g., product_id, merge_id, brand_id
-	SortOrder int    `json:"sortOrder"` // sort order for display
-	IsPrimary bool   `json:"isPrimary"` // primary image indicator
-
-	Content ProductMediaContent `json:"content"`
-
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-}
-type ProductMediaContent struct {
-	AltText       string `json:"altText"`
-	LangShortCode string `json:"langShortCode"`
-}
+type ProductMediaFile = v2.ProductMediaFile
+type ProductMediaContent = v2.ProductMediaContent
 
 type ProductPackage struct {
 	PackageId               uint    `json:"packageId"`
@@ -564,20 +380,8 @@ type ProductExternalInfo struct {
 	PrestaId            uint `json:"prestaId"`
 	PrestaCombinationId uint `json:"prestaCombinationId"`
 }
-type ProductAccountingNumbers struct {
-	ReturnAccountNo              float64 `json:"returnAccountNo"`
-	CostDebitAccountNo           string  `json:"costDebitAccountNo"`
-	CostCreditAccountNo          string  `json:"costCreditAccountNo"`
-	SaleAccountNo                string  `json:"saleAccountNo"`
-	SaleCostAccountNo            string  `json:"saleCostAccountNo"`
-	SupplierDebtAccountNo        string  `json:"supplierDebtAccountNo"`
-	BuyerDebtAccountNo           string  `json:"buyerDebtAccountNo"`
-	VatDebitAccountNo            string  `json:"vatDebitAccountNo"`
-	VatCreditAccountNo           string  `json:"vatCreditAccountNo"`
-	WriteOffAccountNo            string  `json:"writeOffAccountNo"`
-	ManufacturingDebitAccountNo  string  `json:"manufacturingDebitAccountNo"`
-	ManufacturingCreditAccountNo string  `json:"manufacturingCreditAccountNo"`
-}
+type ProductAccountingNumbers = v2.ProductAccountingNumbers
+
 type ProductAttributeVariation struct {
 	Attributes    []ProductAttribute `json:"attributes"`
 	IsMainProduct bool               `json:"isMainProduct"`
@@ -591,22 +395,7 @@ type ProductAttribute struct {
 	PrestaId           uint   `json:"prestaId"`
 }
 
-type ProductCategoriesShort struct {
-	CategoryId      int32  `json:"categoryId"`
-	Name            string `json:"name"`
-	ParentName      string `json:"parentName"`
-	ParentId        int32  `json:"parentId"`
-	Level           int32  `json:"level"`
-	Link            string `json:"link"`
-	LinkAbsolute    string `json:"linkAbsolute"`
-	MetaTitle       string `json:"metaTitle"`
-	MetaDescription string `json:"metaDescription"`
-	H1Title         string `json:"h1Title"`
-	Image           string `json:"image"`
-	ImageSmall      string `json:"imageSmall"`
-	OrderBy         int32  `json:"orderBy"`
-	ProductsCount   int32  `json:"productsCount"`
-}
+type ProductCategoriesShort = common.ProductCategoriesShort
 
 type OrderShippingAddress struct {
 	ShippingFirstName   string `json:"shippingFirstName"`
@@ -782,11 +571,7 @@ type Order struct {
 	CustomFields   json.RawMessage  `json:"customFields"`
 	Token          string           `json:"token"`
 }
-type ItemFilter struct {
-	Operator string `json:"operator" query:"operator"`
-	Value    string `json:"value" query:"value"`
-	Field    string `json:"field" query:"field"`
-}
+type ItemFilter = common.ItemFilter
 type OrderCreateRequest struct {
 	OrderId                int32                         `json:"orderId"`
 	Date                   time.Time                     `json:"date"`
@@ -856,6 +641,7 @@ type OrdersResponse struct {
 	Currency         string             `json:"currency"`
 	TotalsByCurrency map[string]float64 `json:"totalsByCurrency"`
 }
+
 type OrderStatusesRequest struct {
 	// to be filled
 }
@@ -864,12 +650,7 @@ type OrderStatusesResponse struct {
 	Count    int64         `json:"count"`
 }
 
-type PriceRange struct {
-	PriceFrom        float64 `json:"priceFrom"`
-	PriceTo          float64 `json:"priceTo"`
-	PriceFromWithVat float64 `json:"priceFromWithVat"`
-	PriceToWithVat   float64 `json:"priceToWithVat"`
-}
+type PriceRange = common.PriceRange
 
 type ProductsRequest struct {
 	SelectInEshop      bool
@@ -909,10 +690,10 @@ type ProductsResponse struct {
 	AvailablePriceRange PriceRange `json:"availablePriceRange"`
 	Brands              []string   `json:"brands"`
 }
-type ProductImage struct {
-	FileName string `json:"fileName"`
-	FileBlob []byte `json:"fileBlob"`
-}
+
+type MediaItemOrder = v2.MediaItemOrder
+type ProductImage = v2.ProductImage
+
 type ProductCreateEditRequest struct {
 	Product             Product           `json:"product"`
 	MetaValues          map[string]string `json:"metaValues"`
@@ -923,14 +704,8 @@ type ProductCreateEditRequest struct {
 	DeleteImagesKeys []int32 `json:"deleteImagesKeys"`
 }
 
-type ProductCategoriesRequest struct {
-	SelectInEshop     bool
-	SelectInPriceList bool
-	SelectInWarehouse bool
-}
-type ProductCategoriesResponse struct {
-	Categories []ProductCategoriesShort `json:"categories"`
-}
+type ProductCategoriesRequest = common.ProductCategoriesRequest
+type ProductCategoriesResponse = common.ProductCategoriesResponse
 
 type ProductStocksRequest struct {
 	Warehouses       []string
@@ -966,12 +741,7 @@ type ProductStock struct {
 	CategoryNames     []string  `json:"categories"`
 	AverageCostPrice  float64   `json:"averageCostPrice"`
 }
-type StockTotal struct {
-	TotalSum      float64 `json:"totalSum"`
-	TotalCurrency string  `json:"totalCurrency"`
-	TotalQuantity float64 `json:"totalQuantity"`
-	Warehouse     string  `json:"warehouse"`
-}
+
 type ProductStocksResponse struct {
 	Stocks             []ProductStock
 	TotalQuantity      float64
@@ -981,130 +751,42 @@ type ProductStocksResponse struct {
 	TotalCount         int64
 }
 
-type InvoiceSend struct {
-	ToSend bool     `json:"toSend"`
-	Emails []string `json:"emails"`
-}
-type InvoiceCreateUpdateRequest struct {
-	InvoiceId            int32                `json:"invoiceId"` // FOR update only
-	IsPurchase           bool                 `json:"isPurchase"`
-	DocSeries            string               `json:"docSeries"`
-	Document             string               `json:"document"`
-	Document2            string               `json:"document2"`
-	CompanyId            int32                `json:"companyId"`
-	TotalCurrency        string               `json:"totalCurrency"`
-	InvoiceDate          time.Time            `json:"invoiceDate"`
-	PayUntilDate         time.Time            `json:"payUntilDate"`
-	Comment              string               `json:"comment"`
-	ReceiptNo            string               `json:"receiptNo"`
-	PdfBlankId           int32                `json:"pdfBlankId"`
-	IsafForm             bool                 `json:"isafForm"`
-	ReceiveDate          time.Time            `json:"receiveDate"`
-	WorkerId             int32                `json:"workerId"`
-	FromWarehouse        string               `json:"fromWarehouse"`
-	ToWarehouse          string               `json:"toWarehouse"`
-	Products             []InvoiceProduct     `json:"products"`
-	DeleteProductLineIds []int32              `json:"deleteProductLineIds"` // FOR update only
-	Operation            string               `json:"operation"`
-	Costs                []InvoiceCost        `json:"costs"`
-	AutoSend             InvoiceSend          `json:"autoSend"`
-	ExtraSettings        ExtraInvoiceSettings `json:"extraSettings"`
-	PosData              InvoicePosData       `json:"posData"`
-}
+type StockTotal = v2.StockTotal
+type WarehouseProductQuantity = v2.WarehouseProductQuantity
+type ProductWarehousesQuantitiesResponse = v2.ProductWarehousesQuantitiesResponse
+type StockAdjustmentReason = v2.StockAdjustmentReason
 
-type InvoiceErrorResponse struct {
-	ErrorAtProduct  bool
-	ErrorProductKey int
-	ErrorField      string
-	ErrorMessage    string
-}
-type OrderErrorResponse struct {
-	ErrorAtProduct  bool
-	ErrorProductKey int
-	ErrorField      string
-	ErrorMessage    string
-}
+const (
+	StockAdjustmentReasonInitialBalance = v2.StockAdjustmentReasonInitialBalance
+	StockAdjustmentReasonCycleCount     = v2.StockAdjustmentReasonCycleCount
+	StockAdjustmentReasonDamage         = v2.StockAdjustmentReasonDamage
+	StockAdjustmentReasonShrinkage      = v2.StockAdjustmentReasonShrinkage
+	StockAdjustmentReasonCorrection     = v2.StockAdjustmentReasonCorrection
+	StockAdjustmentReasonReceived       = v2.StockAdjustmentReasonReceived
+	StockAdjustmentReasonReturned       = v2.StockAdjustmentReasonReturned
+)
 
-type Country struct {
-	Country         string    `json:"country"`
-	ShortCode       string    `json:"shortCode"`
-	CountryId       int32     `json:"countryId"`
-	CreatedAt       time.Time `json:"createdAt"`
-	CratedUserInfo  UserInfo  `json:"createdUserInfo"`
-	UpdatedAt       time.Time `json:"updatedAt"`
-	UpdatedUserInfo UserInfo  `json:"updatedUserInfo"`
-}
+type ProductStockSetRequest = v2.ProductStockSetRequest
+type ProductStockSetEntry = v2.ProductStockSetEntry
+type ProductStockAdjustRequest = v2.ProductStockAdjustRequest
+type ProductStockAdjustEntry = v2.ProductStockAdjustEntry
+type ProductStockAdjustmentResponse = v2.ProductStockAdjustmentResponse
+type StockAdjustmentInvoiceInfo = v2.StockAdjustmentInvoiceInfo
+type StockAdjustmentError = v2.StockAdjustmentError
 
-type CommerceChannel struct {
-	ChannelID     uint      `json:"channelId"`
-	ChannelUUID   string    `json:"channelUuid"`
-	Name          string    `json:"name"`
-	SourceSystem  string    `json:"sourceSystem"`
-	ChannelType   string    `json:"channelType"`
-	IsActive      bool      `json:"isActive"`
-	CreatedAt     time.Time `json:"createdAt"`
-	UpdatedAt     time.Time `json:"updatedAt"`
-	CreatedUserID uint      `json:"createdUserId"`
-	UpdatedUserID uint      `json:"updatedUserId"`
-}
+type InvoiceSend = common.InvoiceSend
+type InvoiceCreateUpdateRequest = common.InvoiceCreateUpdateRequest
 
-type IntegrationSyncRecord struct {
-	SyncId         uint            `json:"syncId"`
-	Type           string          `json:"type"`
-	Entity         string          `json:"entity"`
-	EntityField    string          `json:"entityField"`
-	LoginName      string          `json:"loginName"`
-	Info           string          `json:"info"`
-	DeviceId       string          `json:"deviceId"`
-	OrganizationId uint            `json:"organizationId"`
-	SyncTime       time.Time       `json:"syncTime"`
-	Extra          json.RawMessage `json:"extra"`
-}
+type InvoiceErrorResponse = common.InvoiceErrorResponse
+type OrderErrorResponse = common.OrderErrorResponse
 
-type IntegrationSyncRecordsRequest struct {
-	Page         int `json:"page"`
-	PerPage      int `json:"perPage"`
-	Type         string
-	Entity       string `json:"entity"`
-	EntityField  string `json:"syncField"`
-	DeviceId     string `json:"deviceId"`
-	SyncTimeFrom time.Time
-	SyncTimeTo   time.Time
-	LoginName    string
-	Info         string
-	OrderBy      string // by default by syncTime
-	OrderWay     string // by default - DESC
-}
-
-type PluginSyncState struct {
-	SyncId    uint      `json:"syncId"`
-	Plugin    string    `json:"plugin"`
-	Entity    string    `json:"entity"`
-	EntityId  string    `json:"entityId"`
-	ToSync    bool      `json:"toSync"`
-	Done      bool      `json:"done"`
-	Error     bool      `json:"error"`
-	ErrorText string    `json:"errorText"`
-	SyncTime  time.Time `json:"syncTime"`
-	UpdatedAt time.Time `json:"updatedAt"`
-}
-type PluginSyncStateRequest struct {
-	Page     int    `json:"page"`
-	PerPage  int    `json:"perPage"`
-	Plugin   string `json:"plugin"`
-	Entity   string `json:"entity"`
-	EntityId string `json:"entityId"`
-	ToSync   bool   `json:"toSync"`
-	Done     bool   `json:"done"`
-	Error    bool   `json:"error"`
-	OrderBy  string `json:"orderBy"`
-	OrderWay string `json:"orderWay"`
-}
-type PluginSyncStateResponse struct {
-	Success bool              `json:"success"`
-	States  []PluginSyncState `json:"states"`
-	Count   int64             `json:"count"`
-}
+type Country = common.Country
+type CommerceChannel = common.CommerceChannel
+type IntegrationSyncRecord = common.IntegrationSyncRecord
+type IntegrationSyncRecordsRequest = common.IntegrationSyncRecordsRequest
+type PluginSyncState = common.PluginSyncState
+type PluginSyncStateRequest = common.PluginSyncStateRequest
+type PluginSyncStateResponse = common.PluginSyncStateResponse
 
 type PosDiscountCard struct {
 	ID              int       `json:"cardId"`
@@ -1145,119 +827,27 @@ type PosDiscountCardsRequest struct {
 	SearchQuery            string
 }
 
-type CustomFieldType string
+type CustomFieldType = common.CustomFieldType
 
-func (s CustomFieldType) IsValid() bool {
-	for _, fieldType := range ValidCustomFieldTypes {
-		if fieldType == s {
-			return true
-		}
-	}
-	return false
-}
-
-var ValidCustomFieldTypes = []CustomFieldType{
-	CustomFieldString, CustomFieldText, CustomFieldFloat, CustomFieldDate, CustomFieldDatetime, CustomFieldBoolean, CustomFieldSelect,
-}
+var ValidCustomFieldTypes = common.ValidCustomFieldTypes
 
 var (
-	CustomFieldString   CustomFieldType = "string"
-	CustomFieldText     CustomFieldType = "text"
-	CustomFieldFloat    CustomFieldType = "float"
-	CustomFieldDate     CustomFieldType = "date"
-	CustomFieldDatetime CustomFieldType = "datetime"
-	CustomFieldBoolean  CustomFieldType = "boolean"
-	CustomFieldSelect   CustomFieldType = "select"
+	CustomFieldString   = common.CustomFieldString
+	CustomFieldText     = common.CustomFieldText
+	CustomFieldFloat    = common.CustomFieldFloat
+	CustomFieldDate     = common.CustomFieldDate
+	CustomFieldDatetime = common.CustomFieldDatetime
+	CustomFieldBoolean  = common.CustomFieldBoolean
+	CustomFieldSelect   = common.CustomFieldSelect
 )
 
-type CustomField struct {
-	ID              uint            `json:"-"`
-	OrganizationId  uint            `json:"-"`
-	CustomFieldId   uint            `json:"customFieldId"`
-	RelatedType     string          `json:"relatedType"`
-	Name            string          `json:"name"`
-	Slug            string          `json:"slug"`
-	Required        bool            `json:"required"`
-	Type            CustomFieldType `json:"type"`
-	Options         json.RawMessage `json:"options"`
-	DisplayInline   bool            `json:"displayInline"`
-	FieldOrder      uint            `json:"fieldOrder"`
-	Active          bool            `json:"active"`
-	ShowInList      bool            `json:"showInList"`
-	ShowOnlyAdmin   bool            `json:"showOnlyAdmin"`
-	ShowInEcommerce bool            `json:"showInEcommerce"`
-	IsIndexedField  bool            `json:"isIndexedField"`
-	CreatedAt       time.Time       `json:"createdAt"`
-	CreatedUserInfo UserInfo        `json:"createdUserInfo"`
-	UpdatedUserInfo UserInfo        `json:"updatedUserInfo"`
-	UpdatedAt       time.Time       `json:"updatedAt"`
-}
+type CustomField = common.CustomField
+type CustomFieldsRequest = common.CustomFieldsRequest
+type CustomFieldsResponse = common.CustomFieldsResponse
+type FileUploadRequest = common.FileUploadRequest
+type FileUploadResponse = common.FileUploadResponse
+type EmailSender = common.EmailSender
+type EmailRequest = common.EmailRequest
 
-type CustomFieldsRequest struct {
-	CustomFieldIds []uint
-	Names          []string
-	Slugs          []string
-	RelatedType    string
-	SearchQuery    string // unused
-}
-type CustomFieldsResponse struct {
-	Fields []CustomField
-}
-type FileUploadRequest struct {
-	ParentId    uint           `json:"parentId"`
-	ParentType  string         `json:"parentType"`
-	FileName    string         `json:"fileName"`
-	MimeType    string         `json:"mimeType"`
-	Content     []byte         `json:"content,omitempty"`
-	IsPublic    bool           `json:"isPublic"`
-	Options     map[string]any `json:"options,omitempty"`
-	Type        string         `json:"type,omitempty"`        // "file" (default) or "url"
-	ExternalUrl string         `json:"externalUrl,omitempty"` // required when type="url"
-}
-
-type FileUploadResponse struct {
-	UploadId    uint   `json:"uploadId"`
-	PreviewPath string `json:"previewPath"`
-	Type        string `json:"type"` // "file" or "url"
-}
-
-type EmailSender struct {
-	Host     string
-	Name     string
-	Email    string
-	Username string
-	Password string
-	Bcc      string
-}
-type EmailRequest struct {
-	ToName          string
-	ToEmail         string
-	Cc              []string
-	Subject         string
-	Html            string
-	UseVariables    bool
-	Attachments     map[string][]byte
-	UseCustomSender bool
-	Sender          EmailSender
-}
-type DocumentChargeCreateRequest struct {
-	ChargeTypeID    uint     `json:"chargeTypeId" binding:"required"`
-	CalculationType string   `json:"calculationType" binding:"required,oneof=percentage fixedAmount perUnit"`
-	Percentage      *float64 `json:"percentage"`    // required if calculationType=percentage
-	Amount          *float64 `json:"amount"`        // required if calculationType=fixedAmount, unit price if calculationType=perUnit
-	Quantity        *float64 `json:"quantity"`      // required if calculationType=perUnit (must be provided for document-level charges)
-	IsTaxable       *bool    `json:"isTaxable"`     // override charge type default
-	TaxPercentage   *float64 `json:"taxPercentage"` // override charge type default tax percentage
-	TaxAmount       *float64 `json:"taxAmount"`     // override calculated tax with fixed amount (takes precedence over taxPercentage)
-	Remarks         string   `json:"remarks"`
-}
-type LineChargeCreateRequest struct {
-	ChargeTypeID    uint     `json:"chargeTypeId" binding:"required"`
-	CalculationType string   `json:"calculationType" binding:"required,oneof=percentage fixedAmount perUnit"`
-	Percentage      *float64 `json:"percentage"`    // required if calculationType=percentage
-	Amount          *float64 `json:"amount"`        // required if calculationType=fixedAmount, unit price if calculationType=perUnit
-	IsTaxable       *bool    `json:"isTaxable"`     // override charge type default
-	TaxPercentage   *float64 `json:"taxPercentage"` // override charge type default tax percentage
-	TaxAmount       *float64 `json:"taxAmount"`     // override calculated tax with fixed amount (takes precedence over taxPercentage)
-	Remarks         string   `json:"remarks"`
-}
+type DocumentChargeCreateRequest = v2.DocumentChargeCreateRequest
+type LineChargeCreateRequest = v2.LineChargeCreateRequest
