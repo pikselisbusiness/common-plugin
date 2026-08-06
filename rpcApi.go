@@ -1594,3 +1594,67 @@ func (m *apiRPCClient) DeleteFile(context RequestContext, uploadId uint) error {
 
 	return reply.Error
 }
+
+// UpsertProductFeature
+type UpsertProductFeatureRequest struct {
+	Context RequestContext
+	Request UpsertFeatureRequest
+}
+type UpsertProductFeatureResponse struct {
+	Response UpsertFeatureResponse
+	Error    error
+}
+
+func (m *apiRPCServer) UpsertProductFeature(req UpsertProductFeatureRequest, resp *UpsertProductFeatureResponse) error {
+	data, err := m.impl.UpsertProductFeature(req.Context, req.Request)
+
+	resp.Response = data
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) UpsertProductFeature(context RequestContext, request UpsertFeatureRequest) (UpsertFeatureResponse, error) {
+
+	var reply UpsertProductFeatureResponse
+	err := m.client.Call("Plugin.UpsertProductFeature", UpsertProductFeatureRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return UpsertFeatureResponse{}, err
+	}
+
+	return reply.Response, reply.Error
+}
+
+// ReplaceProductFeatures
+type ReplaceProductFeaturesRPCRequest struct {
+	Context RequestContext
+	Request ReplaceProductFeaturesRequest
+}
+type ReplaceProductFeaturesRPCResponse struct {
+	Response ReplaceProductFeaturesResult
+	Error    error
+}
+
+func (m *apiRPCServer) ReplaceProductFeatures(req ReplaceProductFeaturesRPCRequest, resp *ReplaceProductFeaturesRPCResponse) error {
+	data, err := m.impl.ReplaceProductFeatures(req.Context, req.Request)
+
+	resp.Response = data
+	resp.Error = encodableError(err)
+
+	return nil
+}
+func (m *apiRPCClient) ReplaceProductFeatures(context RequestContext, request ReplaceProductFeaturesRequest) (ReplaceProductFeaturesResult, error) {
+
+	var reply ReplaceProductFeaturesRPCResponse
+	err := m.client.Call("Plugin.ReplaceProductFeatures", ReplaceProductFeaturesRPCRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return ReplaceProductFeaturesResult{}, err
+	}
+
+	return reply.Response, reply.Error
+}

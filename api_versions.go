@@ -186,6 +186,15 @@ func (a rpcProductsV2API) PatchProduct(context RequestContext, productId uint, r
 	return a.api.PatchProductV2(context, productId, request)
 }
 
+// Feature methods reuse the v1 RPC transport — the DTOs are identical (aliases to
+// the common package), so no dedicated *V2 RPC stub is needed.
+func (a rpcProductsV2API) UpsertFeature(context RequestContext, request v2.UpsertFeatureRequest) (v2.UpsertFeatureResponse, error) {
+	return a.api.UpsertProductFeature(context, request)
+}
+func (a rpcProductsV2API) ReplaceFeatures(context RequestContext, request v2.ReplaceProductFeaturesRequest) (v2.ReplaceProductFeaturesResult, error) {
+	return a.api.ReplaceProductFeatures(context, request)
+}
+
 type rpcStocksV2API struct {
 	api *apiRPCClient
 }

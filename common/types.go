@@ -61,3 +61,62 @@ type OrderErrorResponse struct {
 	ErrorField      string
 	ErrorMessage    string
 }
+
+// ---------------------------------------------------------------------------
+// Product feature sync. Concrete/flat types (no interface{}). Org/user come from
+// the RequestContext. Shared by the v1 and v2 plugin APIs.
+// ---------------------------------------------------------------------------
+
+// UpsertFeatureRequest idempotently creates or updates a feature (attribute
+// definition) by name. Type is the raw external type; the host normalizes it.
+// ExternalId is the source system's attribute id (reserved for a sync mapping).
+type UpsertFeatureRequest struct {
+	Name          string
+	Type          string
+	Unit          string
+	UnitDimension string
+	ExternalId    string
+}
+
+type UpsertFeatureResponse struct {
+	FeatureId uint
+}
+
+// FeatureValueItem is one desired value for a product+feature. NumericValue is
+// nullable; ColorCode applies to color features only.
+type FeatureValueItem struct {
+	Name         string
+	NumericValue *float64
+	Unit         string
+	ColorCode    string
+}
+
+// ProductFeatureSet is the full desired value set for one feature on one product
+// (replace semantics: the product's assignments for FeatureId become exactly Values).
+type ProductFeatureSet struct {
+	FeatureId uint
+	Values    []FeatureValueItem
+}
+
+// ProductFeatureSyncItem carries one product (matched by SKU) and the features to
+// replace on it.
+type ProductFeatureSyncItem struct {
+	Sku      string
+	Features []ProductFeatureSet
+}
+
+// ReplaceProductFeaturesRequest is one page of products. MatchColumn is the
+// whitelisted identifier column the SKU matches against (empty -> host default).
+type ReplaceProductFeaturesRequest struct {
+	Items       []ProductFeatureSyncItem
+	DryRun      bool
+	MatchColumn string
+}
+
+type ReplaceProductFeaturesResult struct {
+	MatchedProducts   int
+	UnmatchedSkus     []string
+	AssignedCount     int64
+	DeassignedCount   int64
+	CreatedValueCount int64
+}

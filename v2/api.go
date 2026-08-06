@@ -70,6 +70,12 @@ type ProductsAPI interface {
 	CreateProduct(context RequestContext, request ProductCreateEditRequest) (ProductMutateResponse, error)
 	UpdateProduct(context RequestContext, productId uint, request ProductCreateEditRequest) (ProductMutateResponse, error)
 	PatchProduct(context RequestContext, productId uint, request ProductPatchRequest) (ProductMutateResponse, error)
+
+	// UpsertFeature idempotently creates or updates a feature (attribute definition)
+	// by name and returns its id. ReplaceFeatures matches products by SKU and replaces
+	// each matched product's assignments per feature.
+	UpsertFeature(context RequestContext, request UpsertFeatureRequest) (UpsertFeatureResponse, error)
+	ReplaceFeatures(context RequestContext, request ReplaceProductFeaturesRequest) (ReplaceProductFeaturesResult, error)
 }
 
 type StocksAPI interface {
@@ -172,6 +178,15 @@ type JournalEntriesResponse = common.JournalEntriesResponse
 type ProductCategoriesShort = common.ProductCategoriesShort
 type ProductCategoriesRequest = common.ProductCategoriesRequest
 type ProductCategoriesResponse = common.ProductCategoriesResponse
+
+// Product feature sync DTOs (shared with the v1 API via the common package).
+type UpsertFeatureRequest = common.UpsertFeatureRequest
+type UpsertFeatureResponse = common.UpsertFeatureResponse
+type FeatureValueItem = common.FeatureValueItem
+type ProductFeatureSet = common.ProductFeatureSet
+type ProductFeatureSyncItem = common.ProductFeatureSyncItem
+type ReplaceProductFeaturesRequest = common.ReplaceProductFeaturesRequest
+type ReplaceProductFeaturesResult = common.ReplaceProductFeaturesResult
 type DivisionsRequest = common.DivisionsRequest
 type Division = common.Division
 type DivisionWarehouse = common.DivisionWarehouse

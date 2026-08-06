@@ -1,0 +1,20 @@
+common-plugin
+Copyright (c) 2024-present Pikselis, UAB.
+
+This product includes software developed by Mattermost, Inc.
+(https://github.com/mattermost/mattermost), licensed under the
+Apache License, Version 2.0.
+
+Portions of the plugin framework in this module are derived from
+Mattermost's `server/public` packages — specifically `plugin`,
+`shared/driver`, and `model` — including the plugin Driver/DB RPC
+interface (rpcCommon.go, rpcDb.go), the plugin client registration
+(client.go, interface.go), and related plumbing.
+
+  Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+  Licensed under the Apache License, Version 2.0.
+  https://github.com/mattermost/mattermost/blob/master/server/public/LICENSE.txt
+
+These portions have been modified by Pikselis, UAB. A copy of the
+Apache License, Version 2.0 is included in LICENSE-APACHE-2.0.txt in
+this repository.

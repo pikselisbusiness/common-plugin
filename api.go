@@ -30,6 +30,12 @@ type API interface {
 	GetAvailableProductQuantityByWarehouses(context RequestContext, productId uint, warehouses []string) (float64, error)
 	CreateProduct(context RequestContext, request ProductCreateEditRequest) (uint, error)
 
+	// Product features. UpsertProductFeature idempotently creates or updates a feature
+	// (attribute definition) by name and returns its id. ReplaceProductFeatures matches
+	// products by SKU and replaces each matched product's assignments per feature.
+	UpsertProductFeature(context RequestContext, request UpsertFeatureRequest) (UpsertFeatureResponse, error)
+	ReplaceProductFeatures(context RequestContext, request ReplaceProductFeaturesRequest) (ReplaceProductFeaturesResult, error)
+
 	GetOrderById(context RequestContext, orderId uint) (Order, error)
 	GetOrders(context RequestContext, request OrdersRequest) (OrdersResponse, error)
 	GetOrderStatuses(context RequestContext, request OrderStatusesRequest) (OrderStatusesResponse, error)

@@ -851,3 +851,14 @@ type EmailRequest = common.EmailRequest
 
 type DocumentChargeCreateRequest = v2.DocumentChargeCreateRequest
 type LineChargeCreateRequest = v2.LineChargeCreateRequest
+
+// Product feature sync DTOs live in the common package (shared by the v1 and v2
+// plugin APIs). Concrete/flat types — no gob.Register needed. Org/user come from
+// the RequestContext, not these structs.
+type UpsertFeatureRequest = common.UpsertFeatureRequest
+type UpsertFeatureResponse = common.UpsertFeatureResponse
+type FeatureValueItem = common.FeatureValueItem
+type ProductFeatureSet = common.ProductFeatureSet
+type ProductFeatureSyncItem = common.ProductFeatureSyncItem
+type ReplaceProductFeaturesRequest = common.ReplaceProductFeaturesRequest
+type ReplaceProductFeaturesResult = common.ReplaceProductFeaturesResult

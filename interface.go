@@ -1,3 +1,10 @@
+// Portions of this file are derived from Mattermost
+// (https://github.com/mattermost/mattermost), licensed under the
+// Apache License, Version 2.0.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE-APACHE-2.0.txt and NOTICE in this module.
+// Modified by Pikselis, UAB.
+
 package shared
 
 import (
