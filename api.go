@@ -35,6 +35,7 @@ type API interface {
 	// products by SKU and replaces each matched product's assignments per feature.
 	UpsertProductFeature(context RequestContext, request UpsertFeatureRequest) (UpsertFeatureResponse, error)
 	ReplaceProductFeatures(context RequestContext, request ReplaceProductFeaturesRequest) (ReplaceProductFeaturesResult, error)
+	PruneProductFeatures(context RequestContext, request PruneProductFeaturesRequest) (PruneProductFeaturesResult, error)
 
 	GetOrderById(context RequestContext, orderId uint) (Order, error)
 	GetOrders(context RequestContext, request OrdersRequest) (OrdersResponse, error)

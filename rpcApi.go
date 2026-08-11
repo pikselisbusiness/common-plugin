@@ -1658,3 +1658,31 @@ func (m *apiRPCClient) ReplaceProductFeatures(context RequestContext, request Re
 
 	return reply.Response, reply.Error
 }
+
+// PruneProductFeatures
+type PruneProductFeaturesRPCRequest struct {
+	Context RequestContext
+	Request PruneProductFeaturesRequest
+}
+type PruneProductFeaturesRPCResponse struct {
+	Response PruneProductFeaturesResult
+	Error    error
+}
+
+func (m *apiRPCServer) PruneProductFeatures(req PruneProductFeaturesRPCRequest, resp *PruneProductFeaturesRPCResponse) error {
+	data, err := m.impl.PruneProductFeatures(req.Context, req.Request)
+	resp.Response = data
+	resp.Error = encodableError(err)
+	return nil
+}
+func (m *apiRPCClient) PruneProductFeatures(context RequestContext, request PruneProductFeaturesRequest) (PruneProductFeaturesResult, error) {
+	var reply PruneProductFeaturesRPCResponse
+	err := m.client.Call("Plugin.PruneProductFeatures", PruneProductFeaturesRPCRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return PruneProductFeaturesResult{}, err
+	}
+	return reply.Response, reply.Error
+}

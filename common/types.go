@@ -107,10 +107,22 @@ type ProductFeatureSyncItem struct {
 
 // ReplaceProductFeaturesRequest is one page of products. MatchColumn is the
 // whitelisted identifier column the SKU matches against (empty -> host default).
+//
+// ReplaceScope selects the delete scope of the replace:
+//   - "" or "features": delete assignments only for the features present in Items
+//     (per-feature replace; safe for partial/chunked writes).
+//   - "source": first delete ALL assignments of features belonging to Source on the
+//     matched products, then insert Items. This makes the request declarative for
+//     the whole source ("the product's <Source> state is exactly this") and
+//     self-heals stale assignments from renamed/removed source attributes. A chunked
+//     caller must send it on the FIRST chunk only, else later chunks would wipe
+//     earlier chunks' writes.
 type ReplaceProductFeaturesRequest struct {
-	Items       []ProductFeatureSyncItem
-	DryRun      bool
-	MatchColumn string
+	Items        []ProductFeatureSyncItem
+	DryRun       bool
+	MatchColumn  string
+	ReplaceScope string
+	Source       string
 }
 
 type ReplaceProductFeaturesResult struct {
@@ -119,4 +131,17 @@ type ReplaceProductFeaturesResult struct {
 	AssignedCount     int64
 	DeassignedCount   int64
 	CreatedValueCount int64
+}
+
+// PruneProductFeaturesRequest asks the host to delete features created by a source
+// integration whose external key is no longer present. KeepExternalIds is the full
+// current set of external ids to KEEP; features with the given Source whose
+// external_id is not in it are deleted (with cache invalidation + reindex).
+type PruneProductFeaturesRequest struct {
+	Source          string
+	KeepExternalIds []string
+}
+
+type PruneProductFeaturesResult struct {
+	DeletedFeatures int
 }

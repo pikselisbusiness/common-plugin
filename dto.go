@@ -862,3 +862,6 @@ type ProductFeatureSet = common.ProductFeatureSet
 type ProductFeatureSyncItem = common.ProductFeatureSyncItem
 type ReplaceProductFeaturesRequest = common.ReplaceProductFeaturesRequest
 type ReplaceProductFeaturesResult = common.ReplaceProductFeaturesResult
+
+type PruneProductFeaturesRequest = common.PruneProductFeaturesRequest
+type PruneProductFeaturesResult = common.PruneProductFeaturesResult
