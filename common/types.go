@@ -145,3 +145,31 @@ type PruneProductFeaturesRequest struct {
 type PruneProductFeaturesResult struct {
 	DeletedFeatures int
 }
+
+// ImportProductsRequest is a thin passthrough to the core product import engine
+// (ProductImportService.ImportProducts) — the same machinery behind Excel/mass
+// import: identifier matching, create/update modes, validation, custom-field
+// merge (map a column to "customFields.<slug>"), and BulkUpdateJob progress.
+// All values travel as strings (the engine stringifies custom-field values).
+type ImportProductsRequest struct {
+	// Products are the rows; keys are column names referenced by ColumnsMap and
+	// ProductIdentifierColumn.
+	Products []map[string]string
+	// ColumnsMap maps row column names to system fields (e.g. "customFields.color").
+	ColumnsMap map[string]string
+	// ProductIdentifierColumn is the ROW column holding the match value.
+	ProductIdentifierColumn string
+	// ProductSystemIdentifierColumn is the SYSTEM column matched against
+	// (articule | barcode | supplierCode1 | orgEanCode).
+	ProductSystemIdentifierColumn string
+	// ImportMode: "createUpdate" | "createOnly" | "updateOnly".
+	ImportMode string
+	DryRun     bool
+}
+
+type ImportProductsResponse struct {
+	ProductsFound   int64
+	ProductsCreated int64
+	ProductsUpdated int64
+	ProductsSkipped int64
+}

@@ -865,3 +865,6 @@ type ReplaceProductFeaturesResult = common.ReplaceProductFeaturesResult
 
 type PruneProductFeaturesRequest = common.PruneProductFeaturesRequest
 type PruneProductFeaturesResult = common.PruneProductFeaturesResult
+
+type ImportProductsRequest = common.ImportProductsRequest
+type ImportProductsResponse = common.ImportProductsResponse

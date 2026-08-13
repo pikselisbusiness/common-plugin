@@ -33,9 +33,19 @@ type API interface {
 	// Product features. UpsertProductFeature idempotently creates or updates a feature
 	// (attribute definition) by name and returns its id. ReplaceProductFeatures matches
 	// products by SKU and replaces each matched product's assignments per feature.
+	//
+	// TODO(v0.2.0 vocabulary): these bulk methods grew plugin-outward and their naming
+	// is inconsistent with the core import engine (dto.ProductImportRequest). Target
+	// for the next breaking bump: adopt the core dialect — `ProductIdentifierColumn`
+	// (not MatchColumn), `Products` (not Items), item field `Identifier` (not Sku),
+	// result `UnmatchedIdentifiers` (not UnmatchedSkus) — and extract the shared
+	// host-side identifier-resolution helper. Method verbs stay separate.
 	UpsertProductFeature(context RequestContext, request UpsertFeatureRequest) (UpsertFeatureResponse, error)
 	ReplaceProductFeatures(context RequestContext, request ReplaceProductFeaturesRequest) (ReplaceProductFeaturesResult, error)
 	PruneProductFeatures(context RequestContext, request PruneProductFeaturesRequest) (PruneProductFeaturesResult, error)
+	// ImportProducts passes rows to the core product import engine (identifier
+	// matching, modes, validation, customFields.<slug> columns).
+	ImportProducts(context RequestContext, request ImportProductsRequest) (ImportProductsResponse, error)
 
 	GetOrderById(context RequestContext, orderId uint) (Order, error)
 	GetOrders(context RequestContext, request OrdersRequest) (OrdersResponse, error)

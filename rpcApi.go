@@ -1686,3 +1686,31 @@ func (m *apiRPCClient) PruneProductFeatures(context RequestContext, request Prun
 	}
 	return reply.Response, reply.Error
 }
+
+// ImportProducts
+type ImportProductsRPCRequest struct {
+	Context RequestContext
+	Request ImportProductsRequest
+}
+type ImportProductsRPCResponse struct {
+	Response ImportProductsResponse
+	Error    error
+}
+
+func (m *apiRPCServer) ImportProducts(req ImportProductsRPCRequest, resp *ImportProductsRPCResponse) error {
+	data, err := m.impl.ImportProducts(req.Context, req.Request)
+	resp.Response = data
+	resp.Error = encodableError(err)
+	return nil
+}
+func (m *apiRPCClient) ImportProducts(context RequestContext, request ImportProductsRequest) (ImportProductsResponse, error) {
+	var reply ImportProductsRPCResponse
+	err := m.client.Call("Plugin.ImportProducts", ImportProductsRPCRequest{
+		Context: context,
+		Request: request,
+	}, &reply)
+	if err != nil {
+		return ImportProductsResponse{}, err
+	}
+	return reply.Response, reply.Error
+}
