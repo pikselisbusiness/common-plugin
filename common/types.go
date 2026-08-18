@@ -123,6 +123,13 @@ type ReplaceProductFeaturesRequest struct {
 	MatchColumn  string
 	ReplaceScope string
 	Source       string
+	// NotifyCatalogChanged asks the host to announce a catalog change for every
+	// matched product after a successful (non-dry) write, so systems mirroring
+	// product data pick up the new feature assignments. Each announcement may
+	// trigger per-product downstream work, so set it only on the LAST write per
+	// product per run (e.g. the final chunk of a multi-pass sync), not on every
+	// write.
+	NotifyCatalogChanged bool
 }
 
 type ReplaceProductFeaturesResult struct {
