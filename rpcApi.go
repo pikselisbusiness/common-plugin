@@ -33,6 +33,15 @@ type RegisterCronJobWithTagRequest struct {
 type RegisterCronJobWithTagResponse struct {
 }
 
+//ShouldStop
+
+type ShouldStopRequest struct {
+}
+type ShouldStopResponse struct {
+	Stop  bool
+	Error error
+}
+
 //GetConfigVariable
 
 type GetConfigVariableRequest struct {
@@ -554,6 +563,46 @@ func (m *apiRPCClient) RegisterCronJobWithTag(tag, schedule string) {
 	}
 
 	// return nil
+}
+
+// ShouldStop is served through an assertion rather than a call on API, because
+// APIStopper is an optional capability — see its doc comment. A host that does
+// not implement it answers "keep going" instead of failing the call.
+func (m *apiRPCServer) ShouldStop(req ShouldStopRequest, resp *ShouldStopResponse) error {
+	stopper, ok := m.impl.(APIStopper)
+	if !ok {
+		resp.Stop = false
+		return nil
+	}
+
+	stop, err := stopper.ShouldStop()
+
+	resp.Stop = stop
+	resp.Error = encodableError(err)
+
+	return nil
+}
+
+// ShouldStop asks the host whether it has begun shutting down. Poll it between
+// chunks of long work — a page of a catalogue sync, a batch of an import —
+// persist how far you got, and return.
+//
+// Polled rather than pushed because this link is net/rpc: a context cannot cross
+// it and an in-flight call has no deadline, so the host cannot interrupt work
+// already running. One local round-trip per chunk is cheap next to whatever
+// remote call the chunk itself makes.
+//
+// An error means no answer — most likely a host older than this method — and
+// must be read as "carry on". Never stop working because the question failed.
+func (m *apiRPCClient) ShouldStop() (bool, error) {
+
+	var reply ShouldStopResponse
+	err := m.client.Call("Plugin.ShouldStop", ShouldStopRequest{}, &reply)
+	if err != nil {
+		return false, err
+	}
+
+	return reply.Stop, reply.Error
 }
 
 func (m *apiRPCServer) GetConfigVariable(req GetConfigVariableRequest, resp *GetConfigVariableResponse) error {

@@ -84,6 +84,31 @@ type API interface {
 	// GetProductCategoriesChainByLastChildId(context RequestContext, categoryId uint) ([]ProductCategoriesShort, error)
 }
 
+// APIStopper lets long-running work ask the host whether it has begun shutting
+// down, so it can stop at a chunk boundary with its progress saved instead of
+// being severed when the host's grace period expires.
+//
+// Deliberately NOT part of API: plugins hand-roll full mocks of that interface
+// in their tests, so every method added to it is a breaking change for every
+// plugin on its next SDK bump. This is the same optional-interface upgrade used
+// for CommonV2/CommonV3 — assert for it and degrade if it is absent:
+//
+//	if stopper, ok := api.(shared.APIStopper); ok {
+//		if stop, err := stopper.ShouldStop(); err == nil && stop {
+//			// save progress and return
+//		}
+//	}
+//
+// Polled rather than pushed because the host↔plugin link is net/rpc: a context
+// cannot cross it, and a call already in flight has no deadline. One local
+// round-trip per chunk is cheap next to the remote call the chunk itself makes.
+//
+// An error means no answer — typically a host older than this method — and must
+// be read as "carry on". Never stop working because the question failed.
+type APIStopper interface {
+	ShouldStop() (bool, error)
+}
+
 // Client is a streamlined wrapper over the pikselis-business plugin API.
 type Client struct {
 	Api API
