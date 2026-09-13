@@ -483,23 +483,27 @@ type OrderUpdateRequest struct {
 }
 
 type OrderPatchRequest struct {
-	AddressId            *uint                      `json:"addressId,omitempty"`
-	ShippingAddress      *OrderPatchShippingAddress `json:"shippingAddress,omitempty"`
-	BillingAddress       *OrderPatchBillingAddress  `json:"billingAddress,omitempty"`
-	DeliveryContactId    *uint                      `json:"deliveryContactId,omitempty"`
-	OrdererContactId     *uint                      `json:"ordererContactId,omitempty"`
-	PaymentMethod        *string                    `json:"paymentMethod,omitempty"`
-	PaymentProvider      *string                    `json:"paymentProvider,omitempty"`
-	PaymentIsCod         *bool                      `json:"paymentIsCod,omitempty"`
-	PaymentId            *int32                     `json:"paymentId,omitempty"`
-	PaymentReference     *string                    `json:"paymentReference,omitempty"`
-	PaymentTermId        *uint                      `json:"paymentTermId,omitempty"`
-	PONumber             *string                    `json:"poNumber,omitempty"`
-	CustomerReference    *string                    `json:"customerReference,omitempty"`
-	ChannelUUID          *string                    `json:"channelUuid,omitempty"`
-	CustomerNote         *string                    `json:"customerNote,omitempty"`
-	DeliveryInstructions *string                    `json:"deliveryInstructions,omitempty"`
-	CustomFields         map[string]any             `json:"customFields,omitempty"`
+	AddressId         *uint                      `json:"addressId,omitempty"`
+	ShippingAddress   *OrderPatchShippingAddress `json:"shippingAddress,omitempty"`
+	BillingAddress    *OrderPatchBillingAddress  `json:"billingAddress,omitempty"`
+	DeliveryContactId *uint                      `json:"deliveryContactId,omitempty"`
+	OrdererContactId  *uint                      `json:"ordererContactId,omitempty"`
+	PaymentMethod     *string                    `json:"paymentMethod,omitempty"`
+	PaymentProvider   *string                    `json:"paymentProvider,omitempty"`
+	PaymentIsCod      *bool                      `json:"paymentIsCod,omitempty"`
+	PaymentId         *int32                     `json:"paymentId,omitempty"`
+	PaymentReference  *string                    `json:"paymentReference,omitempty"`
+	PaymentTermId     *uint                      `json:"paymentTermId,omitempty"`
+	PONumber          *string                    `json:"poNumber,omitempty"`
+	CustomerReference *string                    `json:"customerReference,omitempty"`
+	ChannelUUID       *string                    `json:"channelUuid,omitempty"`
+	// TrackingNumber / TrackingType let carrier plugins record the shipment on the
+	// order without touching the order table directly.
+	TrackingNumber       *string        `json:"trackingNumber,omitempty"`
+	TrackingType         *string        `json:"trackingType,omitempty"`
+	CustomerNote         *string        `json:"customerNote,omitempty"`
+	DeliveryInstructions *string        `json:"deliveryInstructions,omitempty"`
+	CustomFields         map[string]any `json:"customFields,omitempty"`
 }
 
 type OrderPatchShippingAddress struct {
