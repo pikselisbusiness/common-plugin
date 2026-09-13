@@ -63,6 +63,7 @@ type CompaniesAPI interface {
 }
 
 type ProductsAPI interface {
+	GetProductFeatureValues(context RequestContext, productId uint) ([]ProductFeatureValue, error)
 	GetProduct(context RequestContext, productId uint) (Product, error)
 	GetProducts(context RequestContext, request ProductsRequest) (ProductsResponse, error)
 	GetProductsByID(context RequestContext, productIds []uint) (map[uint]Product, error)

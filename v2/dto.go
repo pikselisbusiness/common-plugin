@@ -998,3 +998,10 @@ type StockAdjustmentError struct {
 	WarehouseId int32  `json:"warehouseId"`
 	Error       string `json:"error"`
 }
+
+type ProductFeatureValue struct {
+	FeatureId   uint   `json:"featureId"`
+	FeatureName string `json:"featureName"`
+	ValueId     uint   `json:"valueId"`
+	ValueName   string `json:"valueName"`
+}

@@ -387,6 +387,7 @@ type ProductAttributeVariation struct {
 	IsMainProduct bool               `json:"isMainProduct"`
 }
 type ProductAttribute struct {
+	GroupName          string `json:"groupName"`
 	AttributeValueId   uint   `json:"attributeValueId" `
 	AttributeName      string `json:"attributeName"`
 	AttributeColorCode string `json:"attributeColorCode"`

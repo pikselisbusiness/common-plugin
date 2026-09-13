@@ -389,3 +389,7 @@ type rpcEmailV2API struct {
 func (a rpcEmailV2API) SendEmail(context RequestContext, request v2.EmailRequest) error {
 	return a.api.SendEmail(context, request)
 }
+
+func (a rpcProductsV2API) GetProductFeatureValues(context RequestContext, productId uint) ([]v2.ProductFeatureValue, error) {
+	return a.api.GetProductFeatureValuesV2(context, productId)
+}

@@ -1045,3 +1045,30 @@ func (m *apiRPCClient) PatchOrderPaymentV2(context RequestContext, paymentId uin
 	}
 	return reply.Response, decodableError(reply.Error)
 }
+
+type GetProductFeatureValuesV2Request struct {
+	Context   RequestContext
+	ProductId uint
+}
+type GetProductFeatureValuesV2Response struct {
+	Items []v2.ProductFeatureValue
+	Error error
+}
+
+func (m *apiRPCServer) GetProductFeatureValuesV2(req GetProductFeatureValuesV2Request, resp *GetProductFeatureValuesV2Response) error {
+	impl, ok := m.impl.(v2.VersionedAPI)
+	if !ok {
+		resp.Error = encodableError(v2.ErrUnsupported)
+		return nil
+	}
+	items, err := impl.V2().Products().GetProductFeatureValues(req.Context, req.ProductId)
+	resp.Items, resp.Error = items, encodableError(err)
+	return nil
+}
+func (m *apiRPCClient) GetProductFeatureValuesV2(context RequestContext, productId uint) ([]v2.ProductFeatureValue, error) {
+	var reply GetProductFeatureValuesV2Response
+	if err := m.client.Call("Plugin.GetProductFeatureValuesV2", GetProductFeatureValuesV2Request{context, productId}, &reply); err != nil {
+		return nil, err
+	}
+	return reply.Items, decodableError(reply.Error)
+}
