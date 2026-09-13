@@ -415,13 +415,14 @@ func (m *CommonServerRPC) OnActivate(args OnActivateRequest, resp *OnActivateRes
 		pspluginV2.SetDBv2(dbv2Client)
 	}
 
-	if common, ok := m.Impl.(interface {
-		OnActivate() error
-	}); ok {
-		resp.A = (common.OnActivate())
-	}
+	resp.A = encodableError(m.activatePlugin())
+	return nil
+}
 
-	resp.A = nil
+func (m *CommonServerRPC) activatePlugin() error {
+	if common, ok := m.Impl.(interface{ OnActivate() error }); ok {
+		return common.OnActivate()
+	}
 	return nil
 }
 func (m *CommonClientRPC) OnActivate() error {
@@ -460,18 +461,21 @@ func (m *CommonClientRPC) OnActivate() error {
 }
 func (m *CommonServerRPC) OnDeactivate(args struct{}, resp *OnActivateResponse) error {
 	resp.A = nil
+	if common, ok := m.Impl.(interface{ OnDeactivate() error }); ok {
+		resp.A = encodableError(common.OnDeactivate())
+	}
 	return nil
 }
 
 func (m *CommonClientRPC) OnDeactivate() error {
 
-	var reply error
+	var reply OnActivateResponse
 
-	err := m.client.Call("Plugin.OnDeactive", EmptyRequest{}, &reply)
+	err := m.client.Call("Plugin.OnDeactivate", EmptyRequest{}, &reply)
 	if err != nil {
 		return err
 	}
-	return reply
+	return reply.A
 }
 func (m *CommonServerRPC) OnMigrateRights(args struct{}, resp *OnMigrateRightsResponse) error {
 
