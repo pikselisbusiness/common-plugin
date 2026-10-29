@@ -912,7 +912,7 @@ func (m *apiRPCServer) GetCompaniesMap(req GetCompaniesMapRequest, resp *GetComp
 	companies, err := m.impl.GetCompaniesMap(req.Context, req.CompanyIds)
 
 	resp.Companies = companies
-	resp.Error = err
+	resp.Error = encodableError(err)
 
 	return nil
 }

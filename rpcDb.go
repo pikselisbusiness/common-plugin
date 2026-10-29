@@ -59,7 +59,7 @@ func (m *dbRPCServer) MigrateModel(req DbMigrateRequest, resp *DbMigrateResponse
 	if err != nil {
 		fmt.Println("Error calling Plugin.Migrate", "error", err)
 	}
-	resp.Error = err
+	resp.Error = encodableError(err)
 
 	return nil
 }

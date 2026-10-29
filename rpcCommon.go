@@ -21,7 +21,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/pikselisbusiness/go-plugin"
 	"gorm.io/datatypes"
 )
@@ -207,9 +206,6 @@ type EmptyResponse struct{}
 func encodableError(err error) error {
 	if err == nil {
 		return nil
-	}
-	if _, ok := err.(*mysql.MySQLError); ok {
-		return err
 	}
 	ret := &ErrorString{
 		Err: err.Error(),
@@ -506,7 +502,7 @@ func (m *CommonServerRPC) RunCronJob(args *RunCronJobRequest, resp *RunCronJobRe
 		RunCronJob() error
 	}); ok {
 		err := hook.RunCronJob()
-		resp.Error = err
+		resp.Error = encodableError(err)
 	}
 	return nil
 }
@@ -528,7 +524,7 @@ func (m *CommonServerRPC) RunCronJobWithTag(args *RunCronJobWithTagRequest, resp
 		RunCronJobWithTag(tag string) error
 	}); ok {
 		err := hook.RunCronJobWithTag(args.Tag)
-		resp.Error = err
+		resp.Error = encodableError(err)
 	}
 	return nil
 }
@@ -554,7 +550,7 @@ func (m *CommonServerRPC) HandleEvent(args *HandlEventRequest, resp *HandlEventR
 	}); ok {
 		result, err := hook.HandleEvent(args.Context, args.Event)
 		resp.Result = result
-		resp.Error = err
+		resp.Error = encodableError(err)
 	}
 	return nil
 
