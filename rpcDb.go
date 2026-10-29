@@ -94,7 +94,7 @@ func (m *dbRPCClient) Exec(sql string, values ...interface{}) error {
 	var reply DbStatementResponse
 	err := m.client.Call("Plugin.Exec", DbStatementRequest{
 		Sql:    sql,
-		Values: values,
+		Values: rpcValues(values),
 	}, &reply)
 
 	fmt.Println("CALL query", sql, values)
@@ -126,7 +126,7 @@ func (m *dbRPCClient) ExecWithResult(sql string, values ...interface{}) (int64, 
 	var reply DbExecResultResponse
 	err := m.client.Call("Plugin.ExecWithResult", DbStatementRequest{
 		Sql:    sql,
-		Values: values,
+		Values: rpcValues(values),
 	}, &reply)
 
 	fmt.Println("CALL ExecWithResult", sql, values)
@@ -155,7 +155,7 @@ func (m *dbRPCClient) Raw(sql string, values ...interface{}) ([]map[string]inter
 	var reply DbRawResponse
 	err := m.client.Call("Plugin.Raw", DbStatementRequest{
 		Sql:    sql,
-		Values: values,
+		Values: rpcValues(values),
 	}, &reply)
 	if err != nil {
 		fmt.Println("Error calling Plugin.Raw", "error", err)

@@ -1,9 +1,14 @@
 package shared
 
 import (
+	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
+	"fmt"
+	"math"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -51,6 +56,51 @@ func setStructID(value interface{}, id int64) {
 	}
 }
 
+// rpcValue makes a statement argument or column value safe for gob, which
+// refuses nil pointers inside interfaces: pointers become their value (nil
+// becomes NULL) and driver.Valuer types (sql.NullTime, ...) their Value().
+func rpcValue(value interface{}) interface{} {
+	if valuer, ok := value.(driver.Valuer); ok {
+		if v := reflect.ValueOf(value); v.Kind() == reflect.Ptr && v.IsNil() {
+			return nil
+		}
+		out, err := valuer.Value()
+		if err != nil {
+			return value
+		}
+		return out
+	}
+	v := reflect.ValueOf(value)
+	for v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return nil
+		}
+		v = v.Elem()
+	}
+	if !v.IsValid() {
+		return nil
+	}
+	if v.Kind() == reflect.Slice && v.Type() != bytesType {
+		out := make([]interface{}, v.Len())
+		for i := range out {
+			out[i] = rpcValue(v.Index(i).Interface())
+		}
+		return out
+	}
+	return v.Interface()
+}
+
+func rpcValues(values []interface{}) []interface{} {
+	if values == nil {
+		return nil
+	}
+	out := make([]interface{}, len(values))
+	for i, value := range values {
+		out[i] = rpcValue(value)
+	}
+	return out
+}
+
 // structToMap converts a struct to map[string]interface{}
 func structToMap(value interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
@@ -59,9 +109,12 @@ func structToMap(value interface{}) map[string]interface{} {
 		return result
 	}
 
-	// If already a map, return it
+	// A map keeps its keys; its values get the same gob treatment.
 	if m, ok := value.(map[string]interface{}); ok {
-		return m
+		for k, v := range m {
+			result[k] = rpcValue(v)
+		}
+		return result
 	}
 
 	v := reflect.ValueOf(value)
@@ -88,13 +141,15 @@ func structToMap(value interface{}) map[string]interface{} {
 			continue
 		}
 
-		result[colName] = fieldVal.Interface()
+		result[colName] = rpcValue(fieldVal.Interface())
 	}
 
 	return result
 }
 
-// scanRowsInto scans rows into destination
+// scanRowsInto scans rows into dest: a pointer to a struct, a slice of
+// structs, or a slice of a single column's values (Pluck). A value that
+// cannot be stored in its field is an error, never a silently zero field.
 func scanRowsInto(rows []map[string]interface{}, dest interface{}) error {
 	destValue := reflect.ValueOf(dest)
 	if destValue.Kind() != reflect.Ptr {
@@ -108,21 +163,47 @@ func scanRowsInto(rows []map[string]interface{}, dest interface{}) error {
 		destType := destElem.Type().Elem()
 		for _, row := range rows {
 			item := reflect.New(destType).Elem()
-			mapToStructValue(row, item)
+			if err := rowToValue(row, item); err != nil {
+				return err
+			}
 			destElem.Set(reflect.Append(destElem, item))
 		}
 		return nil
 	}
 
 	// Handle single struct destination
-	if destElem.Kind() == reflect.Struct && len(rows) > 0 {
-		mapToStructValue(rows[0], destElem)
+	if len(rows) > 0 {
+		return rowToValue(rows[0], destElem)
 	}
 
 	return nil
 }
 
-func mapToStructValue(data map[string]interface{}, structVal reflect.Value) {
+func rowToValue(row map[string]interface{}, item reflect.Value) error {
+	if isScalarDest(item.Type()) {
+		for column, value := range row {
+			if err := setFieldValue(item, value); err != nil {
+				return fmt.Errorf("column %s: %w", column, err)
+			}
+			return nil
+		}
+		return nil
+	}
+	return mapToStructValue(row, item)
+}
+
+// isScalarDest reports a destination that holds one column, not a row.
+func isScalarDest(t reflect.Type) bool {
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	return t.Kind() != reflect.Struct || t == reflect.TypeOf(time.Time{}) || reflect.PtrTo(t).Implements(scannerType)
+}
+
+func mapToStructValue(data map[string]interface{}, structVal reflect.Value) error {
+	if structVal.Kind() != reflect.Struct {
+		return nil
+	}
 	structType := structVal.Type()
 
 	for i := 0; i < structType.NumField(); i++ {
@@ -139,68 +220,195 @@ func mapToStructValue(data map[string]interface{}, structVal reflect.Value) {
 			continue
 		}
 
-		setFieldValue(field, value)
+		if err := setFieldValue(field, value); err != nil {
+			return fmt.Errorf("column %s: %w", key, err)
+		}
 	}
+	return nil
 }
 
-func setFieldValue(field reflect.Value, value interface{}) {
-	fieldValue := reflect.ValueOf(value)
+var (
+	scannerType = reflect.TypeOf((*sql.Scanner)(nil)).Elem()
+	timeType    = reflect.TypeOf(time.Time{})
+	bytesType   = reflect.TypeOf([]byte(nil))
+)
 
-	// Handle json.Number
-	if num, ok := value.(json.Number); ok {
-		switch field.Kind() {
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			if n, err := num.Int64(); err == nil {
-				field.SetInt(n)
-				return
-			}
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			if n, err := num.Int64(); err == nil {
-				field.SetUint(uint64(n))
-				return
-			}
-		case reflect.Float32, reflect.Float64:
-			if f, err := num.Float64(); err == nil {
-				field.SetFloat(f)
-				return
-			}
-		}
+// sqlTimeLayouts are the forms a DATETIME, TIMESTAMP or DATE column arrives
+// in without parseTime, plus RFC 3339 from JSON.
+var sqlTimeLayouts = []string{
+	"2006-01-02 15:04:05.999999999",
+	"2006-01-02 15:04:05",
+	time.RFC3339Nano,
+	"2006-01-02",
+}
+
+// setFieldValue stores one column value as the MySQL driver and JSON hand it
+// over (int64, float64, []byte, string, time.Time, json.Number) into a field
+// of the model's type, including pointer fields and sql.Scanner types.
+func setFieldValue(field reflect.Value, value interface{}) error {
+	if value == nil {
+		return nil
 	}
 
-	// Handle float64 to int conversion (common in JSON)
-	if f, ok := value.(float64); ok {
-		switch field.Kind() {
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			field.SetInt(int64(f))
-			return
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			field.SetUint(uint64(f))
-			return
+	if field.Kind() == reflect.Ptr {
+		elem := reflect.New(field.Type().Elem())
+		if err := setFieldValue(elem.Elem(), value); err != nil {
+			return err
 		}
+		field.Set(elem)
+		return nil
 	}
 
-	// Handle time.Time
-	if field.Type() == reflect.TypeOf(time.Time{}) {
+	if field.CanAddr() && field.Addr().Type().Implements(scannerType) {
+		return field.Addr().Interface().(sql.Scanner).Scan(value)
+	}
+
+	if field.Type() == bytesType {
 		switch v := value.(type) {
+		case []byte:
+			field.SetBytes(append([]byte(nil), v...))
+			return nil
 		case string:
-			if t, err := time.Parse("2006-01-02 15:04:05", v); err == nil {
-				field.Set(reflect.ValueOf(t))
-				return
-			}
-			if t, err := time.Parse(time.RFC3339, v); err == nil {
-				field.Set(reflect.ValueOf(t))
-				return
-			}
+			field.SetBytes([]byte(v))
+			return nil
+		}
+	}
+
+	// Text forms: []byte from the driver, json.Number from JSON.
+	switch v := value.(type) {
+	case []byte:
+		value = string(v)
+	case json.Number:
+		value = string(v)
+	}
+
+	if field.Type() == timeType {
+		switch v := value.(type) {
 		case time.Time:
 			field.Set(reflect.ValueOf(v))
-			return
+			return nil
+		case string:
+			for _, layout := range sqlTimeLayouts {
+				if t, err := time.ParseInLocation(layout, v, time.Local); err == nil {
+					field.Set(reflect.ValueOf(t))
+					return nil
+				}
+			}
+		}
+		return fmt.Errorf("cannot store %T %v as time", value, value)
+	}
+
+	switch field.Kind() {
+	case reflect.Bool:
+		switch v := value.(type) {
+		case bool:
+			field.SetBool(v)
+			return nil
+		case string:
+			b, err := strconv.ParseBool(v)
+			if err != nil {
+				return fmt.Errorf("cannot store %q as bool", v)
+			}
+			field.SetBool(b)
+			return nil
+		}
+		if n, ok := numberValue(value); ok {
+			field.SetBool(n != 0)
+			return nil
+		}
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		if s, ok := value.(string); ok {
+			n, err := strconv.ParseInt(s, 10, 64)
+			if err != nil {
+				f, ferr := strconv.ParseFloat(s, 64)
+				if ferr != nil || f != math.Trunc(f) {
+					return fmt.Errorf("cannot store %q as integer", s)
+				}
+				n = int64(f)
+			}
+			field.SetInt(n)
+			return nil
+		}
+		if n, ok := numberValue(value); ok {
+			field.SetInt(int64(n))
+			return nil
+		}
+		if b, ok := value.(bool); ok {
+			field.SetInt(boolInt(b))
+			return nil
+		}
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		if s, ok := value.(string); ok {
+			n, err := strconv.ParseUint(s, 10, 64)
+			if err != nil {
+				return fmt.Errorf("cannot store %q as unsigned integer", s)
+			}
+			field.SetUint(n)
+			return nil
+		}
+		if n, ok := numberValue(value); ok && n >= 0 {
+			field.SetUint(uint64(n))
+			return nil
+		}
+		if b, ok := value.(bool); ok {
+			field.SetUint(uint64(boolInt(b)))
+			return nil
+		}
+	case reflect.Float32, reflect.Float64:
+		if s, ok := value.(string); ok {
+			f, err := strconv.ParseFloat(s, 64)
+			if err != nil {
+				return fmt.Errorf("cannot store %q as number", s)
+			}
+			field.SetFloat(f)
+			return nil
+		}
+		if n, ok := numberValue(value); ok {
+			field.SetFloat(n)
+			return nil
+		}
+	case reflect.String:
+		switch v := value.(type) {
+		case string:
+			field.SetString(v)
+			return nil
+		case time.Time:
+			field.SetString(v.Format("2006-01-02 15:04:05"))
+			return nil
+		}
+		if _, ok := numberValue(value); ok {
+			field.SetString(fmt.Sprint(value))
+			return nil
 		}
 	}
 
-	// Direct conversion
-	if fieldValue.Type().ConvertibleTo(field.Type()) {
+	fieldValue := reflect.ValueOf(value)
+	if fieldValue.Type().ConvertibleTo(field.Type()) && fieldValue.Kind() == field.Kind() {
 		field.Set(fieldValue.Convert(field.Type()))
+		return nil
 	}
+	return fmt.Errorf("cannot store %T into %s", value, field.Type())
+}
+
+// numberValue reads any Go number as float64.
+func numberValue(value interface{}) (float64, bool) {
+	v := reflect.ValueOf(value)
+	switch v.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return float64(v.Int()), true
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return float64(v.Uint()), true
+	case reflect.Float32, reflect.Float64:
+		return v.Float(), true
+	}
+	return 0, false
+}
+
+func boolInt(b bool) int64 {
+	if b {
+		return 1
+	}
+	return 0
 }
 
 func getColumnNameFromField(field reflect.StructField) string {

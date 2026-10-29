@@ -94,17 +94,17 @@ func (q *QueryBuilderRPCClient) Omit(columns ...string) QueryBuilder {
 }
 
 func (q *QueryBuilderRPCClient) Where(query string, args ...interface{}) QueryBuilder {
-	q.request.WhereConds = append(q.request.WhereConds, WhereCondRPC{Query: query, Args: args})
+	q.request.WhereConds = append(q.request.WhereConds, WhereCondRPC{Query: query, Args: rpcValues(args)})
 	return q
 }
 
 func (q *QueryBuilderRPCClient) Or(query string, args ...interface{}) QueryBuilder {
-	q.request.OrConds = append(q.request.OrConds, WhereCondRPC{Query: query, Args: args})
+	q.request.OrConds = append(q.request.OrConds, WhereCondRPC{Query: query, Args: rpcValues(args)})
 	return q
 }
 
 func (q *QueryBuilderRPCClient) Not(query string, args ...interface{}) QueryBuilder {
-	q.request.NotConds = append(q.request.NotConds, WhereCondRPC{Query: query, Args: args})
+	q.request.NotConds = append(q.request.NotConds, WhereCondRPC{Query: query, Args: rpcValues(args)})
 	return q
 }
 
@@ -133,22 +133,22 @@ func (q *QueryBuilderRPCClient) Group(columns ...string) QueryBuilder {
 }
 
 func (q *QueryBuilderRPCClient) Having(query string, args ...interface{}) QueryBuilder {
-	q.request.HavingCond = &WhereCondRPC{Query: query, Args: args}
+	q.request.HavingCond = &WhereCondRPC{Query: query, Args: rpcValues(args)}
 	return q
 }
 
 func (q *QueryBuilderRPCClient) Join(table string, condition string, args ...interface{}) QueryBuilder {
-	q.request.Joins = append(q.request.Joins, JoinClauseRPC{JoinType: "INNER", Table: table, Condition: condition, Args: args})
+	q.request.Joins = append(q.request.Joins, JoinClauseRPC{JoinType: "INNER", Table: table, Condition: condition, Args: rpcValues(args)})
 	return q
 }
 
 func (q *QueryBuilderRPCClient) LeftJoin(table string, condition string, args ...interface{}) QueryBuilder {
-	q.request.Joins = append(q.request.Joins, JoinClauseRPC{JoinType: "LEFT", Table: table, Condition: condition, Args: args})
+	q.request.Joins = append(q.request.Joins, JoinClauseRPC{JoinType: "LEFT", Table: table, Condition: condition, Args: rpcValues(args)})
 	return q
 }
 
 func (q *QueryBuilderRPCClient) RightJoin(table string, condition string, args ...interface{}) QueryBuilder {
-	q.request.Joins = append(q.request.Joins, JoinClauseRPC{JoinType: "RIGHT", Table: table, Condition: condition, Args: args})
+	q.request.Joins = append(q.request.Joins, JoinClauseRPC{JoinType: "RIGHT", Table: table, Condition: condition, Args: rpcValues(args)})
 	return q
 }
 
@@ -159,7 +159,7 @@ func (q *QueryBuilderRPCClient) Preload(association string, args ...interface{})
 
 func (q *QueryBuilderRPCClient) Raw(sql string, values ...interface{}) QueryBuilder {
 	q.request.RawSQL = sql
-	q.request.RawArgs = values
+	q.request.RawArgs = rpcValues(values)
 	return q
 }
 
