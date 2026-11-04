@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	stdlog "log"
 	"math"
 	"os"
 	"reflect"
@@ -182,14 +183,22 @@ func scanRowsInto(rows []map[string]interface{}, dest interface{}) error {
 func rowToValue(row map[string]interface{}, item reflect.Value) error {
 	if isScalarDest(item.Type()) {
 		for column, value := range row {
-			if err := setFieldValue(item, value); err != nil {
-				return fmt.Errorf("column %s: %w", column, err)
-			}
+			storeColumn(item, column, value)
 			return nil
 		}
 		return nil
 	}
 	return mapToStructValue(row, item)
+}
+
+// storeColumn sets one column value. A value the field cannot hold leaves the
+// field zero and is logged rather than failing the read: plugins written
+// against the earlier, silent conversion keep loading their rows.
+func storeColumn(field reflect.Value, column string, value interface{}) {
+	if err := setFieldValue(field, value); err != nil {
+		field.Set(reflect.Zero(field.Type()))
+		stdlog.Printf("common-plugin: column %s left empty: %v", column, err)
+	}
 }
 
 // isScalarDest reports a destination that holds one column, not a row.
@@ -220,9 +229,7 @@ func mapToStructValue(data map[string]interface{}, structVal reflect.Value) erro
 			continue
 		}
 
-		if err := setFieldValue(field, value); err != nil {
-			return fmt.Errorf("column %s: %w", key, err)
-		}
+		storeColumn(field, key, value)
 	}
 	return nil
 }
@@ -247,6 +254,19 @@ var sqlTimeLayouts = []string{
 // of the model's type, including pointer fields and sql.Scanner types.
 func setFieldValue(field reflect.Value, value interface{}) error {
 	if value == nil {
+		return nil
+	}
+
+	if field.Kind() == reflect.Interface {
+		if reflect.TypeOf(value).Implements(field.Type()) {
+			field.Set(reflect.ValueOf(value))
+			return nil
+		}
+		return fmt.Errorf("cannot store %T into %s", value, field.Type())
+	}
+
+	// An empty string or a MySQL zero date is no value for a non-text field.
+	if text, ok := sqlText(value); ok && isEmptySQLValue(text) && !holdsText(field.Type()) {
 		return nil
 	}
 
@@ -388,6 +408,28 @@ func setFieldValue(field reflect.Value, value interface{}) error {
 		return nil
 	}
 	return fmt.Errorf("cannot store %T into %s", value, field.Type())
+}
+
+func sqlText(value interface{}) (string, bool) {
+	switch v := value.(type) {
+	case string:
+		return v, true
+	case []byte:
+		return string(v), true
+	}
+	return "", false
+}
+
+// holdsText reports a string or []byte field, behind pointers.
+func holdsText(t reflect.Type) bool {
+	for t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	return t.Kind() == reflect.String || t == bytesType
+}
+
+func isEmptySQLValue(s string) bool {
+	return s == "" || strings.HasPrefix(s, "0000-00-00")
 }
 
 // numberValue reads any Go number as float64.

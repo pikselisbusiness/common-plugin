@@ -81,7 +81,6 @@ func (m *dbRPCClient) MigrateModel(tableName string, fields []MigrateField) erro
 func (m *dbRPCServer) Exec(req DbStatementRequest, resp *DbStatementResponse) error {
 	err := m.impl.Exec(req.Sql, req.Values...)
 
-	fmt.Println("CALL query", req.Sql, req.Values)
 	if err != nil {
 		fmt.Println("Error calling Plugin.Exec", "error", err)
 	}
@@ -97,8 +96,6 @@ func (m *dbRPCClient) Exec(sql string, values ...interface{}) error {
 		Values: rpcValues(values),
 	}, &reply)
 
-	fmt.Println("CALL query", sql, values)
-
 	if err != nil {
 		fmt.Println("Error calling Plugin.Exec", "error", err)
 		return err
@@ -110,7 +107,6 @@ func (m *dbRPCClient) Exec(sql string, values ...interface{}) error {
 func (m *dbRPCServer) ExecWithResult(req DbStatementRequest, resp *DbExecResultResponse) error {
 	rowsAffected, lastInsertID, err := m.impl.ExecWithResult(req.Sql, req.Values...)
 
-	fmt.Println("CALL ExecWithResult", req.Sql, req.Values)
 	if err != nil {
 		fmt.Println("Error calling Plugin.ExecWithResult", "error", err)
 	}
@@ -128,8 +124,6 @@ func (m *dbRPCClient) ExecWithResult(sql string, values ...interface{}) (int64, 
 		Sql:    sql,
 		Values: rpcValues(values),
 	}, &reply)
-
-	fmt.Println("CALL ExecWithResult", sql, values)
 
 	if err != nil {
 		fmt.Println("Error calling Plugin.ExecWithResult", "error", err)

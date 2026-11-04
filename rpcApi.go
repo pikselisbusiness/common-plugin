@@ -42,6 +42,15 @@ type ShouldStopResponse struct {
 	Error error
 }
 
+//LogEvent
+
+type LogEventRequest struct {
+	Entry []byte
+}
+type LogEventResponse struct {
+	Error error
+}
+
 //GetConfigVariable
 
 type GetConfigVariableRequest struct {
@@ -603,6 +612,27 @@ func (m *apiRPCClient) ShouldStop() (bool, error) {
 	}
 
 	return reply.Stop, reply.Error
+}
+
+// LogEvent is served through an assertion, like ShouldStop: APIEventLogger is
+// optional. A host without it answers an error the plugin ignores.
+func (m *apiRPCServer) LogEvent(req LogEventRequest, resp *LogEventResponse) error {
+	logger, ok := m.impl.(APIEventLogger)
+	if !ok {
+		resp.Error = encodableError(ErrEventLogUnsupported)
+		return nil
+	}
+	resp.Error = encodableError(logger.LogEvent(req.Entry))
+	return nil
+}
+
+// LogEvent writes an entry to the host's plugin event log; see shared.LogEvent.
+func (m *apiRPCClient) LogEvent(entryJSON []byte) error {
+	var reply LogEventResponse
+	if err := m.client.Call("Plugin.LogEvent", LogEventRequest{Entry: entryJSON}, &reply); err != nil {
+		return err
+	}
+	return reply.Error
 }
 
 func (m *apiRPCServer) GetConfigVariable(req GetConfigVariableRequest, resp *GetConfigVariableResponse) error {

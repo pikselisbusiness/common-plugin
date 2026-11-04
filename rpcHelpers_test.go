@@ -3,7 +3,6 @@ package shared
 import (
 	"database/sql"
 	"encoding/json"
-	"strings"
 	"testing"
 	"time"
 )
@@ -57,15 +56,28 @@ func TestScanRowsIntoConvertsDriverValues(t *testing.T) {
 	}
 }
 
-func TestScanRowsIntoRefusesValuesItCannotStore(t *testing.T) {
+func TestScanRowsIntoLeavesUnreadableValuesEmpty(t *testing.T) {
 	var out []scanModel
-	err := scanRowsInto([]map[string]interface{}{{"cod_amount": []byte("ten")}}, &out)
-	if err == nil || !strings.Contains(err.Error(), "cod_amount") {
-		t.Fatalf("an unreadable value must name its column, got %v", err)
+	err := scanRowsInto([]map[string]interface{}{{"id": int64(3), "cod_amount": []byte("ten"), "inp_time": "not a time"}}, &out)
+	if err != nil || len(out) != 1 || out[0].ID != 3 || out[0].CodAmount != 0 {
+		t.Fatalf("an unreadable value must leave its field empty and keep the row: %+v %v", out, err)
 	}
-	var single scanModel
-	if err := scanRowsInto([]map[string]interface{}{{"inp_time": "not a time"}}, &single); err == nil {
-		t.Fatal("an unreadable time must be refused")
+	var zero scanModel
+	if err := scanRowsInto([]map[string]interface{}{{"inp_time": "0000-00-00 00:00:00", "updated_at": []byte("0000-00-00"), "order_id": "", "count": ""}}, &zero); err != nil {
+		t.Fatal(err)
+	}
+	if zero.CreatedAt != nil || !zero.UpdatedAt.IsZero() || zero.OrderID != nil || zero.Count != 0 {
+		t.Fatalf("zero dates and empty strings must read as no value: %+v", zero)
+	}
+	var loose struct {
+		Extra interface{} `gorm:"column:extra"`
+		Note  *string     `gorm:"column:note"`
+	}
+	if err := scanRowsInto([]map[string]interface{}{{"extra": int64(5), "note": ""}}, &loose); err != nil {
+		t.Fatal(err)
+	}
+	if loose.Extra != int64(5) || loose.Note == nil || *loose.Note != "" {
+		t.Fatalf("interface fields take the value as is, text keeps an empty string: %+v", loose)
 	}
 }
 
