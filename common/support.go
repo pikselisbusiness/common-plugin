@@ -213,6 +213,8 @@ type InvoiceCreateUpdateRequest struct {
 	AutoSend             InvoiceSend          `json:"autoSend"`
 	ExtraSettings        ExtraInvoiceSettings `json:"extraSettings"`
 	PosData              InvoicePosData       `json:"posData"`
+	// Status is "draft" or "posted" (empty posts), as in the external API.
+	Status string `json:"status"`
 }
 
 type ProductCategoriesShort struct {
