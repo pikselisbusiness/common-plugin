@@ -51,15 +51,17 @@ type Company struct {
 	WantsInvoiceByRegularMail bool            `json:"wantsInvoiceByRegularMail"`
 	PriceField                string          `json:"priceField"`
 	CustomFields              json.RawMessage `json:"customFields"`
-	TaxExempt                 bool            `json:"taxExempt"`
-	TaxProfile                json.RawMessage `json:"taxProfile"`
-	CustomerLanguage          string          `json:"customerLanguage"`
-	Source                    string          `json:"source"`
-	IsVerified                bool            `json:"isVerified"`
-	CreatedAt                 time.Time       `json:"createdAt"`
-	CreatedUserId             uint            `json:"createdUserId"`
-	UpdatedAt                 time.Time       `json:"updatedAt"`
-	UpdatedUserId             uint            `json:"updatedUserId"`
+	// TaxExempt is intentionally not IsTaxExempt: same name as the external API (taxExempt)
+	// and the industry term (Shopify Customer.taxExempt). Do not rename.
+	TaxExempt        bool            `json:"taxExempt"`
+	TaxProfile       json.RawMessage `json:"taxProfile"`
+	CustomerLanguage string          `json:"customerLanguage"`
+	Source           string          `json:"source"`
+	IsVerified       bool            `json:"isVerified"`
+	CreatedAt        time.Time       `json:"createdAt"`
+	CreatedUserId    uint            `json:"createdUserId"`
+	UpdatedAt        time.Time       `json:"updatedAt"`
+	UpdatedUserId    uint            `json:"updatedUserId"`
 }
 
 type TaxProfileRequest struct {
@@ -73,45 +75,47 @@ type TaxProfileRequest struct {
 }
 
 type CompanyCreateUpdateRequest struct {
-	Name                  string             `json:"name"`
-	RegistrationNumber    string             `json:"registrationNumber"`
-	TaxNumber             string             `json:"taxNumber"`
-	IsPerson              bool               `json:"isPerson"`
-	AddressLine1          string             `json:"addressLine1"`
-	AddressLine2          string             `json:"addressLine2"`
-	AddressLine3          string             `json:"addressLine3"`
-	PostCode              string             `json:"postCode"`
-	City                  string             `json:"city"`
-	CountryCode           string             `json:"countryCode"`
-	PhoneNumber           string             `json:"phoneNumber"`
-	WarnedDate            time.Time          `json:"warnedDate"`
-	DeferSaleDays         int32              `json:"deferSaleDays"`
-	DeferPurchaseDays     int32              `json:"deferPurchaseDays"`
-	Region                string             `json:"region"`
-	Representative        string             `json:"representative"`
-	Fax                   string             `json:"fax"`
-	Website               string             `json:"website"`
-	Email                 string             `json:"email"`
-	IsBranch              bool               `json:"isBranch"`
-	IsManufacturer        bool               `json:"isManufacturer"`
-	ContractNumber        string             `json:"contractNumber"`
-	ContractStartDate     time.Time          `json:"contractStartDate"`
-	ContractEndDate       time.Time          `json:"contractEndDate"`
-	MaxDebt               float64            `json:"maxDebt"`
-	MaxCurrency           string             `json:"maxCurrency"`
-	DeferSaleMonths       int32              `json:"deferSaleMonths"`
-	DeferSaleType         string             `json:"deferSaleType"`
-	DeferPurchaseMonths   int32              `json:"deferPurchaseMonths"`
-	DeferPurchaseType     string             `json:"deferPurchaseType"`
-	SalePaymentTermId     uint               `json:"salePaymentTermId"`
-	PurchasePaymentTermId uint               `json:"purchasePaymentTermId"`
-	PriceField            string             `json:"priceField"`
-	CustomFields          json.RawMessage    `json:"customFields"`
-	TaxExempt             *bool              `json:"taxExempt"`
-	TaxProfileRequest     *TaxProfileRequest `json:"taxProfileRequest,omitempty"`
-	CustomerLanguage      string             `json:"customerLanguage"`
-	Source                string             `json:"source"`
-	IsVerified            *bool              `json:"isVerified"`
+	Name                  string          `json:"name"`
+	RegistrationNumber    string          `json:"registrationNumber"`
+	TaxNumber             string          `json:"taxNumber"`
+	IsPerson              bool            `json:"isPerson"`
+	AddressLine1          string          `json:"addressLine1"`
+	AddressLine2          string          `json:"addressLine2"`
+	AddressLine3          string          `json:"addressLine3"`
+	PostCode              string          `json:"postCode"`
+	City                  string          `json:"city"`
+	CountryCode           string          `json:"countryCode"`
+	PhoneNumber           string          `json:"phoneNumber"`
+	WarnedDate            time.Time       `json:"warnedDate"`
+	DeferSaleDays         int32           `json:"deferSaleDays"`
+	DeferPurchaseDays     int32           `json:"deferPurchaseDays"`
+	Region                string          `json:"region"`
+	Representative        string          `json:"representative"`
+	Fax                   string          `json:"fax"`
+	Website               string          `json:"website"`
+	Email                 string          `json:"email"`
+	IsBranch              bool            `json:"isBranch"`
+	IsManufacturer        bool            `json:"isManufacturer"`
+	ContractNumber        string          `json:"contractNumber"`
+	ContractStartDate     time.Time       `json:"contractStartDate"`
+	ContractEndDate       time.Time       `json:"contractEndDate"`
+	MaxDebt               float64         `json:"maxDebt"`
+	MaxCurrency           string          `json:"maxCurrency"`
+	DeferSaleMonths       int32           `json:"deferSaleMonths"`
+	DeferSaleType         string          `json:"deferSaleType"`
+	DeferPurchaseMonths   int32           `json:"deferPurchaseMonths"`
+	DeferPurchaseType     string          `json:"deferPurchaseType"`
+	SalePaymentTermId     uint            `json:"salePaymentTermId"`
+	PurchasePaymentTermId uint            `json:"purchasePaymentTermId"`
+	PriceField            string          `json:"priceField"`
+	CustomFields          json.RawMessage `json:"customFields"`
+	// TaxExempt is intentionally not IsTaxExempt: same name as the external API (taxExempt)
+	// and the industry term (Shopify Customer.taxExempt). Do not rename.
+	TaxExempt         *bool              `json:"taxExempt"`
+	TaxProfileRequest *TaxProfileRequest `json:"taxProfileRequest,omitempty"`
+	CustomerLanguage  string             `json:"customerLanguage"`
+	Source            string             `json:"source"`
+	IsVerified        *bool              `json:"isVerified"`
 }
 
 type CompanyPatchRequest struct {
@@ -151,10 +155,12 @@ type CompanyPatchRequest struct {
 	PurchasePaymentTermId *uint            `json:"purchasePaymentTermId,omitempty"`
 	PriceField            *string          `json:"priceField,omitempty"`
 	CustomFields          *json.RawMessage `json:"customFields,omitempty"`
-	TaxExempt             *bool            `json:"taxExempt,omitempty"`
-	CustomerLanguage      *string          `json:"customerLanguage,omitempty"`
-	Source                *string          `json:"source,omitempty"`
-	IsVerified            *bool            `json:"isVerified,omitempty"`
+	// TaxExempt is intentionally not IsTaxExempt: same name as the external API (taxExempt)
+	// and the industry term (Shopify Customer.taxExempt). Do not rename.
+	TaxExempt        *bool   `json:"taxExempt,omitempty"`
+	CustomerLanguage *string `json:"customerLanguage,omitempty"`
+	Source           *string `json:"source,omitempty"`
+	IsVerified       *bool   `json:"isVerified,omitempty"`
 }
 
 type CompaniesRequest struct {

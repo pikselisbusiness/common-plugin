@@ -62,6 +62,14 @@ func (a rpcV2API) Email() v2.EmailAPI {
 	return rpcEmailV2API{api: a.api}
 }
 
+func (a rpcV2API) Issues() v2.IssuesAPI {
+	return rpcIssuesV2API{api: a.api}
+}
+
+func (a rpcV2API) Extensions() v2.ExtensionsAPI {
+	return rpcExtensionsV2API{api: a.api}
+}
+
 type rpcInvoicesV2API struct {
 	api *apiRPCClient
 }

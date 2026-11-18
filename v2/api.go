@@ -31,6 +31,8 @@ type API interface {
 	CustomFields() CustomFieldsAPI
 	Attachments() AttachmentsAPI
 	Email() EmailAPI
+	Issues() IssuesAPI
+	Extensions() ExtensionsAPI
 }
 
 type VersionedAPI interface {
