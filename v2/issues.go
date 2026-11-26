@@ -22,7 +22,6 @@ type IssueStatus struct {
 	Name        string `json:"name"`
 	Color       string `json:"color"`
 	IsCompleted bool   `json:"isCompleted"` // moving an issue here closes it
-	Active      bool   `json:"active"`
 	OrderBy     uint   `json:"orderBy"`
 	Category    string `json:"category"`
 }
@@ -40,6 +39,14 @@ type IssuesAPI interface {
 	// where the organization picks the status for each plugin stage. Choose by
 	// id and category, never by name.
 	GetIssueStatuses(context RequestContext) ([]IssueStatus, error)
+	// SetIssueCustomFieldValue writes one custom field value of an issue,
+	// for values the plugin derives (a "development state" select that lists
+	// filter and sort). Only a field this plugin created
+	// (CustomFields().CreateCustomField) is accepted; the value is checked
+	// like a person's (a select takes one of its options) and nil clears it.
+	// It writes no activity and runs no workflows, and an unchanged value
+	// writes nothing.
+	SetIssueCustomFieldValue(context RequestContext, issueId uint, slug string, value any) error
 }
 
 // ExtensionsAPI keeps a plugin's summary on records of any registered type.
