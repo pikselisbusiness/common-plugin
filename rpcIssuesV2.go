@@ -6,7 +6,7 @@ import (
 	v2 "github.com/pikselisbusiness/common-plugin/v2"
 )
 
-// Issues and Extensions of plugin API v2 (ERP-6046, ERP-6047). Served only by
+// Issues and Extensions of plugin API v2. Served only by
 // hosts that expose v2 (v2.VersionedAPI); others answer v2.ErrUnsupported.
 
 type SetIssueStatusV2Request struct {
@@ -24,6 +24,16 @@ type GetIssueStatusesV2Request struct {
 type GetIssueStatusesV2Response struct {
 	Statuses []v2.IssueStatus
 	Error    error
+}
+
+type SetIssueCustomFieldValueV2Request struct {
+	Context RequestContext
+	IssueId uint
+	Slug    string
+	Value   []byte // JSON; empty clears
+}
+type SetIssueCustomFieldValueV2Response struct {
+	Error error
 }
 
 type SetEntityExtensionDataV2Request struct {
@@ -55,6 +65,25 @@ func (m *apiRPCServer) GetIssueStatusesV2(req GetIssueStatusesV2Request, resp *G
 	statuses, err := impl.V2().Issues().GetIssueStatuses(req.Context)
 	resp.Statuses = statuses
 	resp.Error = encodableError(err)
+	return nil
+}
+
+// SetIssueCustomFieldValueV2 decodes the plugin's JSON value for the host
+// (nil when cleared).
+func (m *apiRPCServer) SetIssueCustomFieldValueV2(req SetIssueCustomFieldValueV2Request, resp *SetIssueCustomFieldValueV2Response) error {
+	impl, ok := m.impl.(v2.VersionedAPI)
+	if !ok {
+		resp.Error = encodableError(v2.ErrUnsupported)
+		return nil
+	}
+	var value any
+	if len(req.Value) > 0 {
+		if err := json.Unmarshal(req.Value, &value); err != nil {
+			resp.Error = encodableError(err)
+			return nil
+		}
+	}
+	resp.Error = encodableError(impl.V2().Issues().SetIssueCustomFieldValue(req.Context, req.IssueId, req.Slug, value))
 	return nil
 }
 
@@ -93,6 +122,22 @@ func (a rpcIssuesV2API) GetIssueStatuses(context RequestContext) ([]v2.IssueStat
 		return nil, err
 	}
 	return reply.Statuses, reply.Error
+}
+
+func (a rpcIssuesV2API) SetIssueCustomFieldValue(context RequestContext, issueId uint, slug string, value any) error {
+	var raw []byte
+	if value != nil {
+		var err error
+		if raw, err = json.Marshal(value); err != nil {
+			return err
+		}
+	}
+	var reply SetIssueCustomFieldValueV2Response
+	request := SetIssueCustomFieldValueV2Request{Context: context, IssueId: issueId, Slug: slug, Value: raw}
+	if err := a.api.client.Call("Plugin.SetIssueCustomFieldValueV2", request, &reply); err != nil {
+		return err
+	}
+	return reply.Error
 }
 
 type rpcExtensionsV2API struct {

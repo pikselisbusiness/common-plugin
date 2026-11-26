@@ -16,6 +16,8 @@ type issuesV2Host struct {
 	entityType        string
 	entityId          uint
 	data              any
+	slug              string
+	value             any
 }
 
 func (h *issuesV2Host) V2() v2.API { return issuesV2{host: h} }
@@ -40,7 +42,15 @@ func (s issuesV2Issues) SetIssueStatus(context RequestContext, issueId uint, sta
 
 func (s issuesV2Issues) GetIssueStatuses(context RequestContext) ([]v2.IssueStatus, error) {
 	s.host.organizationId = context.OrganizationId
-	return []v2.IssueStatus{{StatusId: 6, Name: "Review", Category: v2.IssueStatusCategoryWaiting, Active: true}}, nil
+	return []v2.IssueStatus{{StatusId: 6, Name: "Review", Category: v2.IssueStatusCategoryWaiting}}, nil
+}
+
+func (s issuesV2Issues) SetIssueCustomFieldValue(context RequestContext, issueId uint, slug string, value any) error {
+	if slug == "foreign" {
+		return errors.New("customFieldNotOwned")
+	}
+	s.host.organizationId, s.host.issueId, s.host.slug, s.host.value = context.OrganizationId, issueId, slug, value
+	return nil
 }
 
 type issuesV2Extensions struct{ host *issuesV2Host }
@@ -65,6 +75,25 @@ func TestIssuesV2OverRPC(t *testing.T) {
 	statuses, err := client.V2().Issues().GetIssueStatuses(context)
 	if err != nil || len(statuses) != 1 || statuses[0].Category != v2.IssueStatusCategoryWaiting {
 		t.Fatalf("statuses: %v %v", statuses, err)
+	}
+}
+
+func TestIssueCustomFieldValueV2OverRPC(t *testing.T) {
+	host := &issuesV2Host{}
+	client := featureReadClient(t, host)
+	context := RequestContext{OrganizationId: 7}
+
+	if err := client.V2().Issues().SetIssueCustomFieldValue(context, 6071, "devState", "pipelineFailed"); err != nil {
+		t.Fatal(err)
+	}
+	if host.organizationId != 7 || host.issueId != 6071 || host.slug != "devState" || host.value != "pipelineFailed" {
+		t.Fatalf("stored %+v", host)
+	}
+	if err := client.V2().Issues().SetIssueCustomFieldValue(context, 6071, "devState", nil); err != nil || host.value != nil {
+		t.Fatalf("nil must clear: %v %v", err, host.value)
+	}
+	if err := client.V2().Issues().SetIssueCustomFieldValue(context, 6071, "foreign", 1); err == nil || err.Error() != "customFieldNotOwned" {
+		t.Fatalf("error lost: %v", err)
 	}
 }
 
@@ -99,5 +128,8 @@ func TestIssuesV2OnHostWithoutV2(t *testing.T) {
 	}
 	if err := client.V2().Extensions().SetEntityExtensionData(context, v2.EntityTypeIssue, 1, nil); err == nil {
 		t.Fatal("extension data must fail")
+	}
+	if err := client.V2().Issues().SetIssueCustomFieldValue(context, 1, "devState", "x"); err == nil {
+		t.Fatal("custom field value must fail")
 	}
 }
