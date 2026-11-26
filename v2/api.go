@@ -33,6 +33,7 @@ type API interface {
 	Email() EmailAPI
 	Issues() IssuesAPI
 	Extensions() ExtensionsAPI
+	Repairs() RepairsAPI
 }
 
 type VersionedAPI interface {

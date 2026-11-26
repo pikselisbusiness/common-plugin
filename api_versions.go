@@ -70,6 +70,10 @@ func (a rpcV2API) Extensions() v2.ExtensionsAPI {
 	return rpcExtensionsV2API{api: a.api}
 }
 
+func (a rpcV2API) Repairs() v2.RepairsAPI {
+	return rpcRepairsV2API{api: a.api}
+}
+
 type rpcInvoicesV2API struct {
 	api *apiRPCClient
 }
